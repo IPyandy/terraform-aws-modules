@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 KUBEDIR="${HOME}/.kube"
-PROJECTDIR="${HOME}/Projects/gitlab.com/IPyandy/Terraform/examples/k8s-multicloud"
+PROJECTDIR="${PWD}"
 DEPLOY="no"
 DESTROY="no"
 CLOUD="none"
