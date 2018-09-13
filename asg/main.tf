@@ -17,6 +17,7 @@ resource "aws_launch_template" "launch_tpl" {
   block_device_mappings = ["${var.block_device_mappings}"]
   network_interfaces    = ["${var.network_interfaces}"]
   tag_specifications    = ["${var.tag_specifications}"]
+  tags                  = "${var.lt_tags}"
 }
 
 ## AUTOSCALING GROUP
@@ -36,7 +37,7 @@ resource "aws_autoscaling_group" "asg" {
     version = "${var.launch_tpl_version}"
   }
 
-  tags = ["${var.tags}"]
+  tags = ["${var.asg_tags}"]
 }
 
 resource "aws_autoscaling_group" "alb_asg" {
@@ -55,7 +56,7 @@ resource "aws_autoscaling_group" "alb_asg" {
     version = "${var.launch_tpl_version}"
   }
 
-  tags = ["${var.tags}"]
+  tags = ["${var.asg_tags}"]
 }
 
 # SCALING POLICIES

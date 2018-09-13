@@ -40,10 +40,8 @@ locals {
 
 ### EKS
 module "eks" {
-  source = "../../eks/"
-
-  # source = "git::ssh://git@gitlab.com/IPyandy/terraform-cloud-modules.git//aws/eks?ref=v0.0.2"
-
+  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//eks?ref=vpc-module"
+  source                = "../../eks/"
   vpc_id                = "${module.vpc.vpc_id}"
   pub_subnets           = "${module.vpc.public_subnet_ids}"     # method #1
   priv_subnets          = "${module.vpc.subnet_ids["private"]}" # method #2
@@ -67,6 +65,7 @@ module "eks" {
 
 ### VPC
 module "vpc" {
+  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//vpc?ref=vpc-module"
   source = "../../vpc/"
 
   ### VPC
@@ -167,8 +166,9 @@ module "vpc" {
   ]
 }
 
-### EXTRA SUBNETS (THEY DON'T DO ANYTHING NOW)
+### EXTRA SUBNETS (THEY DON'T DO ANYTHING NOW OTHER THAN CREATE THE SUBNETS)
 module "subnets" {
+  # source        = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//subnets?ref=vpc-module"
   source        = "../../subnets/"
   create_subnet = true
 
@@ -205,6 +205,7 @@ module "subnets" {
 
 ### NODE AUTOSCALING GRUP AND LAUNCH TEMPLATE
 module "asg" {
+  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//asg?ref=vpc-module"
   source = "../../asg/"
 
   # LAUNCH TEMPLATE
@@ -250,6 +251,10 @@ module "asg" {
     },
   ]
 
+  lt_tags = {
+    Name = "${local.cluster_name}-${local.env}-${local.rand1}-launch-tpl"
+  }
+
   # AUTOSCALING GROUP
   launch_tpl_version        = "$Latest"
   asg_desired_capacity      = 3
@@ -261,7 +266,7 @@ module "asg" {
   create_alb                = true
   target_groups             = "${concat("${module.alb.tg}","${module.alb.tg_secure}")}"
 
-  tags = [
+  asg_tags = [
     {
       key                 = "Name"
       value               = "${local.cluster_name}-${local.env}-${local.rand1}-alb-node-asg"
@@ -295,6 +300,7 @@ module "asg" {
 ### REQUIRES TERRAFORM AS KUBERNETES
 ### HAS NO OFFICIAL SUPPORT FOR ALB
 module "alb" {
+  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//alb?ref=vpc-module"
   source = "../../alb/"
 
   # ALB

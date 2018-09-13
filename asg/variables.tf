@@ -75,8 +75,12 @@ variable "launch_tpl_version" {
   default = "$Latest"
 }
 
-variable "tags" {
+variable "asg_tags" {
   default = []
+}
+
+variable "lt_tags" {
+  default = {}
 }
 
 variable "asg_policy_type" {
