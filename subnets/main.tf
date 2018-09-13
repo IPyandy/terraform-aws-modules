@@ -1,7 +1,7 @@
 data "aws_availability_zones" "azs" {}
 
 locals {
-  subnet_count = "${var.create_subnet && length(var.ipv4_subnets) > 0 ?
+  subnet_count = "${(var.create_subnet && length(var.ipv4_subnets) > 0) && (length(var.ipv6_cidr_subnets) >= length(var.ipv4_subnets)) ?
                     length(var.ipv4_subnets) : (var.create_subnet) ? var.num_subnets : 0}"
 }
 
