@@ -23,6 +23,22 @@ provider "aws" {
   version                 = ">= 1.36.0"
 }
 
+### RANDOMNESS AND VARIABLES
+resource "random_id" "rand1" {
+  byte_length = 2
+}
+
+resource "random_id" "rand2" {
+  byte_length = 4
+}
+
+locals {
+  rand1        = "${random_id.rand1.dec}"
+  cluster_name = "eks-cluster"
+  env          = "dev"
+}
+
+### EKS
 module "eks" {
   source = "../../eks/"
 
@@ -49,6 +65,7 @@ module "eks" {
   rand1                 = "${local.rand1}"
 }
 
+### VPC
 module "vpc" {
   source = "../../vpc/"
 
@@ -150,6 +167,7 @@ module "vpc" {
   ]
 }
 
+### EXTRA SUBNETS (THEY DON'T DO ANYTHING NOW)
 module "subnets" {
   source        = "../../subnets/"
   create_subnet = true
@@ -185,6 +203,7 @@ module "subnets" {
   ]
 }
 
+### NODE AUTOSCALING GRUP AND LAUNCH TEMPLATE
 module "asg" {
   source = "../../asg/"
 
@@ -272,6 +291,9 @@ module "asg" {
   ]
 }
 
+### DEPLOY ALB TO USE AS INGRESS POINT
+### REQUIRES TERRAFORM AS KUBERNETES
+### HAS NO OFFICIAL SUPPORT FOR ALB
 module "alb" {
   source = "../../alb/"
 
@@ -317,18 +339,4 @@ module "alb" {
   sec_listener_rule_priority = ["100", "101"]
   sec_forward_rules          = ["/productpage/*", "/*"]
   sec_listener_ports         = ["443"]
-}
-
-resource "random_id" "rand1" {
-  byte_length = 2
-}
-
-resource "random_id" "rand2" {
-  byte_length = 4
-}
-
-locals {
-  rand1        = "${random_id.rand1.dec}"
-  cluster_name = "eks-cluster"
-  env          = "dev"
 }
