@@ -1,5 +1,19 @@
 terraform {
   required_version = ">= 0.11.0"
+
+  ##############################################
+  ## SAMPLE S3 BACKEND FOR PRODUCTION
+  ## BACKENDS CANNOT CONTAIN INTERPOLATION AS
+  ## OF TODAY, WILL UPDATE IF THAT CHANGES
+  ##############################################
+  # backend "s3" {
+  #   bucket  = "{BUCKET-NAME}"
+  #   key     = "terraform/{PREFIX}/{PREFIX-SUB-PATH}/{ENV}/{PROJECT-NAME}/terraform.tfstate"
+  #   profile = "{AWS-PROFILE}"
+  #   region  = "{REGION}"
+  #   encrypt = "true"
+  # }
+  ##############################################
 }
 
 provider "aws" {
@@ -9,23 +23,8 @@ provider "aws" {
   version                 = ">= 1.36.0"
 }
 
-##############################################
-## SAMPLE S3 BACKEND FOR PRODUCTION
-## BACKENDS CANNOT CONTAIN INTERPOLATION AS
-## OF TODAY, WILL UPDATE IF THAT CHANGES
-##############################################
-terraform {
-  backend "s3" {
-    bucket  = "{BUCKET-NAME}"
-    key     = "terraform/{PREFIX}/{PREFIX-SUB-PATH}/{ENV}/{PROJECT-NAME}/terraform.tfstate"
-    profile = "{AWS-PROFILE}"
-    region  = "{REGION}"
-    encrypt = "true"
-  }
-}
-
 module "eks" {
-  source = "../../../modules/aws/eks/"
+  source = "../../eks/"
 
   # source = "git::ssh://git@gitlab.com/IPyandy/terraform-cloud-modules.git//aws/eks?ref=v0.0.2"
 
@@ -51,7 +50,7 @@ module "eks" {
 }
 
 module "vpc" {
-  source = "../../../modules/aws/vpc/"
+  source = "../../vpc/"
 
   ### VPC
   create_vpc = true
@@ -111,18 +110,10 @@ module "vpc" {
 
   ### ALL TAGS
 
-  vpc_tags = [
-    "${map(
-        "Name", "${local.cluster_name}-${local.env}-${local.rand1}-vpc",
-        "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}", "share"
-        )}",
-  ]
-  pub_subnet_tags = [
-    {
-      "Name"                                                                    = "${local.cluster_name}-${local.env}-${local.rand1}}-public"
-      "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}" = "shared"
-    },
-  ]
+  vpc_tags = "${map("Name", "${local.cluster_name}-${local.env}-${local.rand1}-vpc",
+        "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}", "shared")}"
+  pub_subnet_tags = "${map("Name", "${local.cluster_name}-${local.env}-${local.rand1}-public",
+        "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}", "shared")}"
   priv_subnet_tags = [
     {
       "Name" = "${
@@ -160,7 +151,7 @@ module "vpc" {
 }
 
 module "subnets" {
-  source        = "../../../modules/aws/subnets/"
+  source        = "../../subnets/"
   create_subnet = true
 
   # ipv4_subnets = [
@@ -195,7 +186,7 @@ module "subnets" {
 }
 
 module "asg" {
-  source = "../../../modules/aws/asg/"
+  source = "../../asg/"
 
   # LAUNCH TEMPLATE
   asg_name          = "${local.cluster_name}-${local.env}-${local.rand1}"
@@ -282,7 +273,7 @@ module "asg" {
 }
 
 module "alb" {
-  source = "../../../modules/aws/alb/"
+  source = "../../alb/"
 
   # ALB
   create_alb            = true
