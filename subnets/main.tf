@@ -1,3 +1,12 @@
+# TODO: DUALSTACK + MANUAL IPV4 + AUTO IPV6 + RANDOM AZ [✓]
+# TODO: DUALSTACK + MANUAL IPV4 + AUTO IPV6 + MANUAL AZ [✓]
+# TODO: DUALSTACK + MANUAL IPV4 + MANUAL IPV6 + RANDOM AZ [✓]
+# TODO: DUALSTACK + MANUAL IPV4 + MANUAL IPV6 + MANUAL AZ [✓]
+# TODO: DUALSTACK + AUTO IPV4 + AUTO IPV6 + RANDOM AZ [✓]
+# TODO: DUALSTACK + AUTO IPV4 + AUTO IPV6 + MANUAL AZ [✓]
+# TODO: DUALSTACK + AUTO IPV4 + MANUAL IPV6 + RANDOM AZ [✓]
+# TODO: DUALSTACK + AUTO IPV4 + MANUAL IPV6 + MANUAL AZ [✓]
+
 data "aws_availability_zones" "azs" {}
 
 locals {
@@ -10,15 +19,6 @@ resource "random_shuffle" "random_az" {
   input        = ["${data.aws_availability_zones.azs.names}"]
   result_count = "${length(data.aws_availability_zones.azs.names)}"
 }
-
-# TODO: DUALSTACK + MANUAL IPV4 + AUTO IPV6 + RANDOM AZ [✓]
-# TODO: DUALSTACK + MANUAL IPV4 + AUTO IPV6 + MANUAL AZ [✓]
-# TODO: DUALSTACK + MANUAL IPV4 + MANUAL IPV6 + RANDOM AZ [✓]
-# TODO: DUALSTACK + MANUAL IPV4 + MANUAL IPV6 + MANUAL AZ [✓]
-# TODO: DUALSTACK + AUTO IPV4 + AUTO IPV6 + RANDOM AZ [✓]
-# TODO: DUALSTACK + AUTO IPV4 + AUTO IPV6 + MANUAL AZ [✓]
-# TODO: DUALSTACK + AUTO IPV4 + MANUAL IPV6 + RANDOM AZ [✓]
-# TODO: DUALSTACK + AUTO IPV4 + MANUAL IPV6 + MANUAL AZ [✓]
 
 resource "aws_subnet" "this" {
   count                           = "${local.subnet_count}"
