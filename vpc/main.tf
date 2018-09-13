@@ -1,8 +1,13 @@
 data "aws_availability_zones" "azs" {}
 
 locals {
-  pub_subnet_count  = "${var.create_vpc && length(var.pub_subnets) >= 1 ? length(var.pub_subnets) : 0}"
-  priv_subnet_count = "${var.create_vpc && length(var.priv_subnets) >= 1 ? length(var.priv_subnets) : 0}"
+  pub_subnet_count = "${var.create_vpc && length(var.pub_subnets) >= 1 ?
+                      length(var.pub_subnets) : var.create_vpc && var.num_pub_subnets > 0 ?
+                      var.num_pub_subnets : 0}"
+
+  priv_subnet_count = "${var.create_vpc && length(var.priv_subnets) >= 1 ?
+                      length(var.priv_subnets) : var.create_vpc && var.num_priv_subnets > 0 ?
+                      var.num_priv_subnets : 0}"
 
   ### OUTPUTS
   dhcp_options_id             = "${var.create_dhcp_options ? aws_vpc_dhcp_options.this.id : ""}"
@@ -46,14 +51,21 @@ resource "aws_vpc_dhcp_options_association" "this" {
 #######################################
 
 resource "aws_subnet" "public" {
-  count                           = "${local.pub_subnet_count}"
-  vpc_id                          = "${aws_vpc.this.id}"
-  cidr_block                      = "${var.pub_subnets[count.index]}"
+  count  = "${local.pub_subnet_count}"
+  vpc_id = "${aws_vpc.this.id}"
+
   availability_zone               = "${element(var.azs, count.index)}"
   map_public_ip_on_launch         = "${var.map_public}"
   assign_ipv6_address_on_creation = "${var.ipv6_on_create}"
-  ipv6_cidr_block                 = "${cidrsubnet(aws_vpc.this.ipv6_cidr_block, 8, count.index)}"
   tags                            = "${var.pub_subnet_tags}"
+
+  cidr_block = "${length(var.pub_subnets) > 0 ?
+                 element(coalescelist(var.pub_subnets, list("")), count.index) :
+                 cidrsubnet(aws_vpc.this.cidr_block, var.ipv4_newbits, var.ipv4_netnum + count.index)}"
+
+  ipv6_cidr_block = "${length(var.pub_subnets) > 0 && length(var.ipv6_cidr_subnets) > 0 ?
+                      element(coalescelist(var.ipv6_cidr_subnets, list("")), count.index) :
+                      cidrsubnet(aws_vpc.this.ipv6_cidr_block, var.ipv6_newbits, var.ipv6_netnum + count.index)}"
 }
 
 resource "aws_subnet" "private" {
