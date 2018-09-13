@@ -1,0 +1,27 @@
+#  Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+**/.tfstate.
+**/.tfstate.*
+
+# .tfvars files
+*.tfvars
+**/.tfvars
+
+# .tfplan files
+*.tfplan
+**/.tfplan
+
+# auth files
+aws-auth.yaml
+
+# piped files
+**/*apply.txt
+**/*destroy.txt
+**/*plan.txt
+
+# vscode env
+**/*.vscode/*
