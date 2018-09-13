@@ -78,8 +78,26 @@ variable "pub_subnets" {
   default = []
 }
 
+variable "num_pub_subnets" {
+  description = "Optional, when not providing subnets and calculating from CIDR block"
+  default     = 0
+}
+
+variable "ipv4_newbits" {
+  default = 8
+}
+
+variable "ipv4_netnum" {
+  default = 0
+}
+
 variable "priv_subnets" {
   default = []
+}
+
+variable "num_priv_subnets" {
+  description = "Optional, when not providing subnets and calculating from CIDR block"
+  default     = 0
 }
 
 variable "map_public" {
@@ -140,4 +158,14 @@ variable "create_ipv6_egress" {
 
 variable "ipv6_cidr_subnets" {
   default = []
+}
+
+variable "ipv6_newbits" {
+  description = "This will take the place of newbits in the cidrsubnet(iprange, newbits, netnum) function"
+  default     = 8
+}
+
+variable "ipv6_netnum" {
+  description = "This will take the place of netnum and use count.index in the cidrsubnet(iprange, newbits, netnum+count.index) function"
+  default     = 0
 }
