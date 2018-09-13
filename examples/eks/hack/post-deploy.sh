@@ -4,7 +4,7 @@
 
 KUBEDIR="${HOME}/.kube"
 KUBECONFIG="${KUBEDIR}/config"
-AWSKEY="/Users/yandy/.aws-keys/aws-dev-key"
+AWSKEY="${AWS_DEVPRIV_SSHKEY}"
 SSHUSER="ec2-user" # change to appropriate user
 CLUSTER="None"
 CLUSTERNAME="None"
