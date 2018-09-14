@@ -1,13 +1,20 @@
 data "aws_availability_zones" "azs" {}
 
 locals {
-  pub_subnet_count = "${var.create_vpc && length(var.pub_subnets) >= 1 ?
+  pub_subnet_count = "${var.create_vpc && length(var.pub_subnets) > 0 ?
                       length(var.pub_subnets) : var.create_vpc && var.num_pub_subnets > 0 ?
                       var.num_pub_subnets : 0}"
 
-  priv_subnet_count = "${var.create_vpc && length(var.priv_subnets) >= 1 ?
+  priv_subnet_count = "${var.create_vpc && length(var.priv_subnets) > 0 ?
                       length(var.priv_subnets) : var.create_vpc && var.num_priv_subnets > 0 ?
                       var.num_priv_subnets : 0}"
+
+  priv_default_ipv4_count = "${(length(var.priv_subnets) > 0 && var.create_nat_gw > 0 && var.num_nat_gws > 0)
+                              || (var.num_priv_subnets > 0 && var.create_nat_gw > 0 && var.num_nat_gws > 0 ) ?
+                              var.num_nat_gws : 0}"
+
+  priv_default_ipv6_count = "${(length(var.priv_subnets) > 0 && var.create_ipv6_egress > 0) ||
+                                (var.num_priv_subnets > 0 && var.create_ipv6_egress > 0) ? 1 : 0}"
 
   ### OUTPUTS
   dhcp_options_id             = "${var.create_dhcp_options ? aws_vpc_dhcp_options.this.id : ""}"
@@ -51,9 +58,8 @@ resource "aws_vpc_dhcp_options_association" "this" {
 #######################################
 
 resource "aws_subnet" "public" {
-  count  = "${local.pub_subnet_count}"
-  vpc_id = "${aws_vpc.this.id}"
-
+  count                           = "${local.pub_subnet_count}"
+  vpc_id                          = "${aws_vpc.this.id}"
   availability_zone               = "${element(var.azs, count.index)}"
   map_public_ip_on_launch         = "${var.map_public}"
   assign_ipv6_address_on_creation = "${var.ipv6_on_create}"
@@ -61,22 +67,28 @@ resource "aws_subnet" "public" {
 
   cidr_block = "${length(var.pub_subnets) > 0 ?
                  element(coalescelist(var.pub_subnets, list("")), count.index) :
-                 cidrsubnet(aws_vpc.this.cidr_block, var.ipv4_newbits, var.ipv4_netnum + count.index)}"
+                 cidrsubnet(aws_vpc.this.cidr_block, var.ipv4_pub_newbits, var.ipv4_pub_netnum + count.index)}"
 
-  ipv6_cidr_block = "${length(var.pub_subnets) > 0 && length(var.ipv6_cidr_subnets) > 0 ?
-                      element(coalescelist(var.ipv6_cidr_subnets, list("")), count.index) :
-                      cidrsubnet(aws_vpc.this.ipv6_cidr_block, var.ipv6_newbits, var.ipv6_netnum + count.index)}"
+  ipv6_cidr_block = "${length(var.pub_subnets) > 0 && length(var.ipv6_cidr_pub_subnets) > 0 ?
+                      element(coalescelist(var.ipv6_cidr_pub_subnets, list("")), count.index) :
+                      cidrsubnet(aws_vpc.this.ipv6_cidr_block, var.ipv6_pub_newbits, var.ipv6_pub_netnum + count.index)}"
 }
 
 resource "aws_subnet" "private" {
   count                           = "${local.priv_subnet_count}"
   vpc_id                          = "${aws_vpc.this.id}"
-  cidr_block                      = "${var.priv_subnets[count.index]}"
   availability_zone               = "${element(var.azs, count.index)}"
   map_public_ip_on_launch         = false
   assign_ipv6_address_on_creation = "${var.ipv6_on_create}"
-  ipv6_cidr_block                 = "${cidrsubnet(aws_vpc.this.ipv6_cidr_block, 8, 32+count.index)}"
   tags                            = "${var.priv_subnet_tags}"
+
+  cidr_block = "${length(var.priv_subnets) > 0 ?
+                 element(coalescelist(var.priv_subnets, list("")), count.index) :
+                 cidrsubnet(aws_vpc.this.cidr_block, var.ipv4_priv_newbits, var.ipv4_priv_netnum + count.index)}"
+
+  ipv6_cidr_block = "${length(var.priv_subnets) > 0 && length(var.ipv6_cidr_priv_subnets) > 0 ?
+                      element(coalescelist(var.ipv6_cidr_priv_subnets, list("")), count.index) :
+                      cidrsubnet(aws_vpc.this.ipv6_cidr_block, var.ipv6_priv_newbits, var.ipv6_priv_netnum + count.index)}"
 }
 
 #######################################
@@ -138,27 +150,27 @@ resource "aws_route_table_association" "public_association" {
 
 ### PRIVATE TABLE
 resource "aws_route_table" "private" {
-  count  = "${length(var.priv_subnets) >= 1 ? 1 : 0}"
+  count  = "${length(var.priv_subnets) > 0 || var.num_priv_subnets > 0 ? 1 : 0}"
   vpc_id = "${aws_vpc.this.id}"
   tags   = "${var.priv_rt_tags}"
 }
 
 resource "aws_route" "priv_default_v4" {
-  count                  = "${length(var.priv_subnets) >= 1 && var.create_nat_gw >= 1 && var.num_nat_gws >= 1 ? 1 : 0}"
+  count                  = "${local.priv_default_ipv4_count}"
   route_table_id         = "${aws_route_table.private.id}"
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = "${aws_nat_gateway.nat_gw.id}"
 }
 
 resource "aws_route" "priv_default_ipv6" {
-  count                       = "${length(var.priv_subnets) > 0 && var.create_ipv6_egress > 0 ? 1 : 0}"
+  count                       = "${local.priv_default_ipv6_count}"
   route_table_id              = "${aws_route_table.private.id}"
   destination_ipv6_cidr_block = "::/0"
   egress_only_gateway_id      = "${aws_egress_only_internet_gateway.ipv6_gateway.id}"
 }
 
 resource "aws_route_table_association" "private_association" {
-  count          = "${length(var.priv_subnets) >= 1 ? length(var.priv_subnets) : 0}"
+  count          = "${local.priv_subnet_count}"
   subnet_id      = "${aws_subnet.private.*.id[count.index]}"
   route_table_id = "${aws_route_table.private.id}"
 }
