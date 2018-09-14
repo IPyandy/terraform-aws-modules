@@ -83,16 +83,24 @@ variable "num_pub_subnets" {
   default     = 0
 }
 
-variable "ipv4_newbits" {
+variable "ipv4_pub_newbits" {
   default = 8
 }
 
-variable "ipv4_netnum" {
+variable "ipv4_pub_netnum" {
   default = 0
 }
 
 variable "priv_subnets" {
   default = []
+}
+
+variable "ipv4_priv_newbits" {
+  default = 8
+}
+
+variable "ipv4_priv_netnum" {
+  default = 0
 }
 
 variable "num_priv_subnets" {
@@ -156,16 +164,30 @@ variable "create_ipv6_egress" {
   default = false
 }
 
-variable "ipv6_cidr_subnets" {
+variable "ipv6_cidr_pub_subnets" {
   default = []
 }
 
-variable "ipv6_newbits" {
+variable "ipv6_cidr_priv_subnets" {
+  default = []
+}
+
+variable "ipv6_pub_newbits" {
   description = "This will take the place of newbits in the cidrsubnet(iprange, newbits, netnum) function"
   default     = 8
 }
 
-variable "ipv6_netnum" {
+variable "ipv6_pub_netnum" {
+  description = "This will take the place of netnum and use count.index in the cidrsubnet(iprange, newbits, netnum+count.index) function"
+  default     = 0
+}
+
+variable "ipv6_priv_newbits" {
+  description = "This will take the place of newbits in the cidrsubnet(iprange, newbits, netnum) function"
+  default     = 8
+}
+
+variable "ipv6_priv_netnum" {
   description = "This will take the place of netnum and use count.index in the cidrsubnet(iprange, newbits, netnum+count.index) function"
   default     = 0
 }
