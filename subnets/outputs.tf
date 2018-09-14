@@ -4,7 +4,7 @@ output "subnet_ids" {
 }
 
 output "subnet_id" {
-  value = "${aws_subnet.this.*.id}"
+  value = "${element(aws_subnet.this.*.id, 0)}"
 }
 
 output "ipv4_subnets" {
@@ -12,14 +12,14 @@ output "ipv4_subnets" {
 }
 
 output "ipv4_subnet" {
-  value = "${aws_subnet.this.*.cidr_block}"
-}
-
-output "ipv6_subnets" {
-  value = "${aws_subnet.this.*.ipv6_cidr_block}"
+  value = "${element(aws_subnet.this.*.cidr_block, 0)}"
 }
 
 output "ipv6_subnet" {
+  value = "${element(aws_subnet.this.*.ipv6_cidr_block, 0)}"
+}
+
+output "ipv6_subnets" {
   value = "${aws_subnet.this.*.ipv6_cidr_block}"
 }
 
@@ -28,7 +28,7 @@ output "azs" {
 }
 
 output "az" {
-  value = "${aws_subnet.this.*.availability_zone}"
+  value = "${element(aws_subnet.this.*.availability_zone, 0)}"
 }
 
 output "arns" {
@@ -36,7 +36,7 @@ output "arns" {
 }
 
 output "arn" {
-  value = "${aws_subnet.this.*.arn}"
+  value = "${element(aws_subnet.this.*.arn, 0)}"
 }
 
 output "vpc_ids" {
@@ -44,5 +44,5 @@ output "vpc_ids" {
 }
 
 output "vpc_id" {
-  value = "${aws_subnet.this.*.vpc_id}"
+  value = "${element(aws_subnet.this.*.vpc_id, 0)}"
 }
