@@ -123,27 +123,27 @@ resource "aws_nat_gateway" "nat_gw" {
 
 ### ROUTE TABLES
 resource "aws_route_table" "public" {
-  count  = "${length(var.pub_subnets) >= 1 ? 1 : 0}"
+  count  = "${length(var.pub_subnets) >= 1 || var.num_pub_subnets > 0 ? 1 : 0}"
   vpc_id = "${aws_vpc.this.id}"
   tags   = "${var.pub_rt_tags}"
 }
 
 resource "aws_route" "pub_default_v4" {
-  count                  = "${length(var.pub_subnets) >= 1 ? 1 : 0}"
+  count                  = "${length(var.pub_subnets) >= 1  || var.num_pub_subnets > 0 ? 1 : 0}"
   route_table_id         = "${aws_route_table.public.id}"
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = "${aws_internet_gateway.inet_gateway.id}"
 }
 
 resource "aws_route" "pub_default_ipv6" {
-  count                       = "${length(var.pub_subnets) > 0 ? 1 : 0}"
+  count                       = "${length(var.pub_subnets) > 0  || var.num_pub_subnets > 0 ? 1 : 0}"
   route_table_id              = "${aws_route_table.public.id}"
   destination_ipv6_cidr_block = "::/0"
   gateway_id                  = "${aws_internet_gateway.inet_gateway.id}"
 }
 
 resource "aws_route_table_association" "public_association" {
-  count          = "${length(var.pub_subnets) >= 1 ? length(var.pub_subnets) : 0}"
+  count          = "${local.pub_subnet_count}"
   subnet_id      = "${aws_subnet.public.*.id[count.index]}"
   route_table_id = "${aws_route_table.public.id}"
 }
