@@ -200,7 +200,10 @@ module "vpc" {
   ]
 }
 
+#############################################################################
 ### EXTRA SUBNETS (THEY DON'T DO ANYTHING NOW OTHER THAN CREATE THE SUBNETS)
+#############################################################################
+
 module "subnets" {
   # source        = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//subnets?ref=vpc-module"
   source        = "../../subnets/"
@@ -218,6 +221,11 @@ module "subnets" {
   ipv4_newbits    = 8
   ipv4_netnum     = 16
   map_public      = false
+
+  #############################################################################
+  ### IPV6 THINGS
+  #############################################################################
+
 
   # ipv6_cidr_subnets = [
   #   "2600:1f18:63e8:5f60::/64",
@@ -237,7 +245,10 @@ module "subnets" {
   ]
 }
 
+#############################################################################
 ### NODE AUTOSCALING GRUP AND LAUNCH TEMPLATE
+#############################################################################
+
 module "asg" {
   # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//asg?ref=vpc-module"
   source = "../../asg/"
