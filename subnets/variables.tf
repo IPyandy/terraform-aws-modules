@@ -1,5 +1,5 @@
 variable "create_subnet" {
-  description = "Sometimes for testing or refreshing state, set to false to delete resources"
+  description = "Create or Not to Create? That is the question!"
   default     = true
 }
 
