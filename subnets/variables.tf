@@ -30,16 +30,18 @@ variable "azs" {
 }
 
 variable "ipv4_cidr_block" {
-  description = "Used to auto calculate ipv4 subnets using cidrsubnet() from a given block"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = ""
 }
 
 variable "ipv4_newbits" {
-  default = 8
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
+  default     = 8
 }
 
 variable "ipv4_netnum" {
-  default = 1
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
+  default     = 1
 }
 
 variable "ipv6_on_create" {
@@ -47,17 +49,17 @@ variable "ipv6_on_create" {
 }
 
 variable "ipv6_newbits" {
-  description = "This will take the place of newbits in the cidrsubnet(iprange, newbits, netnum) function"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = 8
 }
 
 variable "ipv6_netnum" {
-  description = "This will take the place of netnum and use count.index in the cidrsubnet(iprange, newbits, netnum+count.index) function"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = 1
 }
 
 variable "ipv6_cidr_block" {
-  description = "Used to auto calculate ipv6 subnets using cidrsubnet() from a given block"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
 
   # default value required for check expression to validate
   # otherwise an invalid cidrsubnet error is thrown
