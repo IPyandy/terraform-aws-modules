@@ -383,7 +383,11 @@ module "alb" {
   sec_matcher             = "200-299"
 
   # LISTENERS
-  listener_domains           = ["${var.cnames[0]}.${var.domain_name}", "${var.cnames[1]}.${var.domain_name}"]
+  listener_domains = [
+    "${var.cnames[0]}.${var.domain_name}",
+    "${var.cnames[1]}.${var.domain_name}",
+  ]
+
   listener_rule_priority     = ["100", "101"]
   forward_rules              = ["/productpage/*", "/*"]
   listener_ports             = ["80"]
