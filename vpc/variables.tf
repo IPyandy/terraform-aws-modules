@@ -1,6 +1,6 @@
-#######################################
+################################################################################
 ## VPC
-#######################################
+################################################################################
 
 variable "create_vpc" {
   default = true
@@ -38,9 +38,9 @@ variable "vpc_tags" {
   default = {}
 }
 
-#######################################
+################################################################################
 ## VPC DHCP OPTIONS
-#######################################
+################################################################################
 
 variable "create_dhcp_options" {
   default = false
@@ -70,9 +70,9 @@ variable "dhcp_option_tags" {
   default = {}
 }
 
-#######################################
+################################################################################
 ## SUBNETS
-#######################################
+################################################################################################################################################################
 
 variable "pub_subnets" {
   default = []
@@ -84,13 +84,13 @@ variable "num_pub_subnets" {
 }
 
 variable "ipv4_pub_newbits" {
-  "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default = 8
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
+  default     = 8
 }
 
 variable "ipv4_pub_netnum" {
-  "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default = 0
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
+  default     = 0
 }
 
 variable "priv_subnets" {
@@ -98,13 +98,13 @@ variable "priv_subnets" {
 }
 
 variable "ipv4_priv_newbits" {
-  "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default = 8
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
+  default     = 8
 }
 
 variable "ipv4_priv_netnum" {
-  "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default = 0
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
+  default     = 0
 }
 
 variable "num_priv_subnets" {
@@ -124,9 +124,9 @@ variable "priv_subnet_tags" {
   default = {}
 }
 
-#######################################
+################################################################################
 ## ROUTING AND INTERNET
-#######################################
+################################################################################
 
 variable "create_nat_gw" {
   default = false
@@ -156,9 +156,9 @@ variable "priv_rt_tags" {
   default = {}
 }
 
-#######################################
+################################################################################
 ## IPV6 ROUTING AND INTERNET
-#######################################
+################################################################################
 
 variable "ipv6_on_create" {
   default = false
