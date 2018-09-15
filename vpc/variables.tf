@@ -79,15 +79,17 @@ variable "pub_subnets" {
 }
 
 variable "num_pub_subnets" {
-  description = "Optional, when not providing subnets and calculating from CIDR block"
+  description = "Optional, when not providing subnets, calculating CIDR block"
   default     = 0
 }
 
 variable "ipv4_pub_newbits" {
+  "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default = 8
 }
 
 variable "ipv4_pub_netnum" {
+  "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default = 0
 }
 
@@ -96,15 +98,17 @@ variable "priv_subnets" {
 }
 
 variable "ipv4_priv_newbits" {
+  "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default = 8
 }
 
 variable "ipv4_priv_netnum" {
+  "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default = 0
 }
 
 variable "num_priv_subnets" {
-  description = "Optional, when not providing subnets and calculating from CIDR block"
+  description = "Optional, when not providing subnets, calculating CIDR block"
   default     = 0
 }
 
@@ -173,21 +177,21 @@ variable "ipv6_cidr_priv_subnets" {
 }
 
 variable "ipv6_pub_newbits" {
-  description = "This will take the place of newbits in the cidrsubnet(iprange, newbits, netnum) function"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = 8
 }
 
 variable "ipv6_pub_netnum" {
-  description = "This will take the place of netnum and use count.index in the cidrsubnet(iprange, newbits, netnum+count.index) function"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = 0
 }
 
 variable "ipv6_priv_newbits" {
-  description = "This will take the place of newbits in the cidrsubnet(iprange, newbits, netnum) function"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = 8
 }
 
 variable "ipv6_priv_netnum" {
-  description = "This will take the place of netnum and use count.index in the cidrsubnet(iprange, newbits, netnum+count.index) function"
+  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = 0
 }
