@@ -32,21 +32,21 @@ function resetKubeConfig() {
 
 function postDeploy() {
 	echo "Running post ${CLUSTER} deployment"
-	cd "${PROJECTDIR}/${CLUSTER}"
-	"${PROJECTDIR}/bash/post-deploy.sh" --cluster "${CLUSTER}" --cloud "${CLOUD}"
+	cd "${PROJECTDIR}"
+	"${PROJECTDIR}/hack/post-deploy.sh" --cluster "${CLUSTER}" --cloud "${CLOUD}"
 }
 
 function deployCluster() {
-	cd "${PROJECTDIR}/${CLUSTER}"
+	cd "${PROJECTDIR}"
 	echo "Deploying to ${CLUSTER} -> $PWD"
 
 	terraform plan -out plan.tfplan >plan.txt
 	if [ "$?" != 0 ]; then
-		echo "removing ${PROJECTDIR}/${CLUSTER}/.terraform"
-		rm -rfv "${PROJECTDIR}/${CLUSTER}/.terraform"
+		echo "removing ${PROJECTDIR}/.terraform"
+		rm -rfv "${PROJECTDIR}/.terraform"
 		terraform init
 		if [ "$?" == 0 ]; then
-			terraform plan -out "${PROJECTDIR}/${CLUSTER}/plan.tfplan"
+			terraform plan -out "${PROJECTDIR}/plan.tfplan"
 		else
 			echo "There was an error deploy ${CLUSTER}."
 			echo "Exiting"
@@ -77,7 +77,7 @@ function deployCluster() {
 			exit 0
 			;;
 		Y | y | YES | yes | Yes)
-			terraform apply "${PROJECTDIR}/${CLUSTER}/plan.tfplan"
+			terraform apply "${PROJECTDIR}/plan.tfplan"
 			;;
 		esac
 	fi
@@ -184,7 +184,7 @@ function deleteIstio() {
 }
 
 function destroyCluster() {
-	cd "${PROJECTDIR}/${CLUSTER}"
+	cd "${PROJECTDIR}"
 	echo "Destroying ${CLUSTER} -> $PWD"
 	getClusterName
 
