@@ -1,18 +1,17 @@
 #!/usr/bin/env sh
 
+################################################################################
+## SCRIPT MUST BE RUN INSIDE OF THE DIRECTORY CONTIANING THE TERRAFORM FILES
+################################################################################
+
 KUBEDIR="${HOME}/.kube"
-PROJECTDIR="${PWD}"
 DEPLOY="no"
 DESTROY="no"
-CLOUD="none"
 CLUSTERNAME=""
-CLUSTER=""
+CLUSTER="eks"
 
 function getClusterName() {
 	CLUSTERNAME="$(terraform output -module=${CLUSTER} ${CLUSTER}-name)"
-}
-function setCluster() {
-	CLUSTER="$1"
 }
 
 function resetKubeConfig() {
@@ -32,23 +31,21 @@ function resetKubeConfig() {
 
 function postDeploy() {
 	echo "Running post ${CLUSTER} deployment"
-	cd "${PROJECTDIR}"
-	"${PROJECTDIR}/hack/post-deploy.sh" --cluster "${CLUSTER}" --cloud "${CLOUD}"
+	"hack/post-deploy.sh"
 }
 
 function deployCluster() {
-	cd "${PROJECTDIR}"
 	echo "Deploying to ${CLUSTER} -> $PWD"
 
 	terraform plan -out plan.tfplan >plan.txt
 	if [ "$?" != 0 ]; then
-		echo "removing ${PROJECTDIR}/.terraform"
-		rm -rfv "${PROJECTDIR}/.terraform"
+		echo "removing .terraform"
+		rm -rfv ".terraform"
 		terraform init
 		if [ "$?" == 0 ]; then
-			terraform plan -out "${PROJECTDIR}/plan.tfplan"
+			terraform plan -out "plan.tfplan"
 		else
-			echo "There was an error deploy ${CLUSTER}."
+			echo "There was an error deploying ${CLUSTER}."
 			echo "Exiting"
 			exit 1
 		fi
@@ -77,7 +74,7 @@ function deployCluster() {
 			exit 0
 			;;
 		Y | y | YES | yes | Yes)
-			terraform apply "${PROJECTDIR}/plan.tfplan"
+			terraform apply "plan.tfplan"
 			;;
 		esac
 	fi
@@ -85,33 +82,11 @@ function deployCluster() {
 
 # Create Cluster(s)
 function deployClusters() {
+	deployCluster
 
-	if [ "$CLOUD" == "aws" ]; then
-		setCluster "eks"
-		deployCluster
-
-		# Run post deployment script only if success
-		if [ "$?" == 0 ]; then
-			postDeploy
-		fi
-
-	elif [ "$CLOUD" == "azure" ]; then
-		setCluster "aks"
-		deployCluster
-
-		# Run post deployment script only if success
-		if [ "$?" == 0 ]; then
-			postDeploy
-		fi
-
-	elif [ "$CLOUD" == "gcp" ]; then
-		setCluster "gke"
-		deployCluster
-
-		# Run post deployment script only if success
-		if [ "$?" == 0 ]; then
-			postDeploy
-		fi
+	# Run post deployment script only if success
+	if [ "$?" == 0 ]; then
+		postDeploy
 	fi
 }
 
@@ -184,81 +159,47 @@ function deleteIstio() {
 }
 
 function destroyCluster() {
-	cd "${PROJECTDIR}"
-	echo "Destroying ${CLUSTER} -> $PWD"
+	echo "Destroying -> $PWD"
 	getClusterName
+	kubectl config use-context $CLUSTERNAME
 
-	if [ "${CLOUD}" == "gcp" ]; then
-		gcloud container clusters get-credentials "${CLUSTERNAME}"
-		if [ "$?" == 0 ]; then
-			deleteIstio
-		fi
-		terraform destroy -force
-	else
-		kubectl config use-context $CLUSTERNAME
-		if [ "$?" == 0 ]; then
-			deleteIstio
-		fi
-		rm "${KUBEDIR}/config"
-		rm "${KUBEDIR}/${CLUSTERNAME}.yaml"
-		terraform destroy -force
+	if [ "$?" == 0 ]; then
+		deleteIstio
 	fi
+	rm "${KUBEDIR}/config"
+	rm "${KUBEDIR}/${CLUSTERNAME}.yaml"
+	terraform destroy -force
 }
 
 function destroyClusters() {
 
 	echo "Inside destroyClusters()"
-	if [ "$CLOUD" == "aws" ]; then
-		setCluster "eks"
-		destroyCluster
-		resetKubeConfig
-
-	elif [ "$CLOUD" == "azure" ]; then
-		setCluster "aks"
-		destroyCluster
-		resetKubeConfig
-
-	elif [ "$CLOUD" == "gcp" ]; then
-		setCluster "gke"
-		destroyCluster
-		resetKubeConfig
-	fi
+	destroyCluster
+	resetKubeConfig
 }
 
 function run() {
 	while [[ $# -gt 0 ]]; do
 		key="$1"
 		case $key in
-		deploy)
+		deploy | create | up)
 			DEPLOY="yes"
 			shift
-			;;
-		remove | delete | destroy)
-			DESTROY="yes"
-			shift
-			;;
-		-c | --cloud)
-			if [ -z "${2}" ]; then
-				echo "Enter a cloud provider"
+			deployClusters
+			if [ "${?}" == 0 ]; then
+				exit 0
+			else
 				exit 1
 			fi
-			CLOUD="${2}"
+			;;
+		remove | delete | destroy | down)
+			DESTROY="yes"
 			shift
-			shift
-			if [ "${DEPLOY}" == "yes" ]; then
-				deployClusters
-				if [ "${?}" == 0 ]; then
-					exit 0
-				else
-					exit 1
-				fi
-			elif [ "${DESTROY}" == "yes" ]; then
-				destroyClusters
-				if [ "${?}" == 0 ]; then
-					exit 0
-				else
-					exit 1
-				fi
+			destroyClusters
+			if [ "${?}" == 0 ]; then
+				exit 0
+			else
+				exit 1
 			fi
 			;;
 		*)
