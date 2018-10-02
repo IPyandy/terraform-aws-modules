@@ -7,8 +7,6 @@ KUBECONFIG="${KUBEDIR}/config"
 AWSKEY="${AWS_DEVPRIV_SSHKEY}"
 SSHUSER="ec2-user" # change to appropriate user
 CLUSTER="eks"
-CLUSTERNAME="None"
-CLOUD="None"
 
 function setKubeConfig() {
 	# update kubenconfig variable
