@@ -6,7 +6,7 @@ KUBEDIR="${HOME}/.kube"
 KUBECONFIG="${KUBEDIR}/config"
 AWSKEY="${AWS_DEVPRIV_SSHKEY}"
 SSHUSER="ec2-user" # change to appropriate user
-CLUSTER="None"
+CLUSTER="eks"
 CLUSTERNAME="None"
 CLOUD="None"
 
@@ -26,7 +26,7 @@ function setKubeConfig() {
 	echo "kubeconfig entry generated for ${CLUSTERNAME}."
 }
 
-function postAWS() {
+function postTasks() {
 	terraform output -module=eks kubeconfig >"$KUBEDIR/${CLUSTERNAME}.yaml"
 	BASTIONIP="$(terraform output -module=eks aws_bastion_pub_ip)"
 
@@ -62,62 +62,8 @@ EOF
 	rm $PWD/aws-auth.yaml
 }
 
-function postAzure() {
-	terraform output -module=aks kube_config >"$KUBEDIR/${CLUSTERNAME}.yaml"
-
-	# SET KUBECONFIG
-	setKubeConfig
-}
-
-function postGCP() {
-	gcloud container clusters get-credentials "${CLUSTERNAME}"
-
-	export KUBECONFIG
-}
-
 function run() {
-	while [[ $# -gt 0 ]]; do
-		key="$1"
-		case $key in
-		--cluster)
-			if ! [ -z "${2}" ]; then
-				CLUSTER="${2}"
-				CLUSTERNAME="$(terraform output -module="${CLUSTER}" "${CLUSTER}"-name)"
-			else
-				echo "Please enter cluster to use first."
-				exit 1
-			fi
-			shift
-			shift
-			;;
-		--cloud)
-			if [ -z "${2}" ]; then
-				echo "Enter a cloud provider"
-				exit 1
-			fi
-			CLOUD="${2}"
-			if [ "${CLOUD}" == "aws" ]; then
-				postAWS
-			elif [ "${CLOUD}" == "azure" ]; then
-				postAzure
-			elif [ "${CLOUD}" == "gcp" ]; then
-				postGCP
-			else
-				echo "Not a valid cloud provider."
-				exit 1
-			fi
-			if [ "${?}" == 0 ]; then
-				echo 'EXITING'
-				exit 0
-			fi
-			;;
-		*)
-			echo "Enter a valid option."
-			exit 1
-			;;
-		esac
-	done
-	run
+	postTasks
 }
 
 run "$@"
