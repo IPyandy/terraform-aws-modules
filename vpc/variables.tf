@@ -195,3 +195,15 @@ variable "ipv6_priv_netnum" {
   description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
   default     = 0
 }
+
+################################################################################
+### VPC FLOW LOGS
+################################################################################
+
+variable "create_flow_log" {
+  default = false
+}
+
+variable "flow_log_group_name" {
+  default = ""
+}

@@ -57,7 +57,7 @@ EOF
 	# apply configmap to allow nodes to connect to cluster master
 	terraform output -module=eks aws-auth >$PWD/aws-auth.yaml
 	kubectl apply -f $PWD/aws-auth.yaml
-	rm $PWD/aws-auth.yaml
+	rm -rfv $PWD/aws-auth.yaml
 }
 
 function run() {
