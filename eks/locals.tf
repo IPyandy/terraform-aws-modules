@@ -105,6 +105,7 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
+        - system:masters
     - rolearn: ${aws_iam_role.bastion_role.arn}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
