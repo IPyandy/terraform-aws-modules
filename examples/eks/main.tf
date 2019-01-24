@@ -51,7 +51,7 @@ module "eks" {
   env                   = "${local.env}"
   domain_name           = "${var.domain_name}"
   alb_dns_name          = "${module.alb.alb_dns_name}"
-  cnames                = ["ghost", "bookinfo"]
+  cnames                = ["ghost", "bookinfo", "graphql"]
   key_path              = "${var.key_path}"
   priv_key_path         = "${var.priv_key_path}"
   key_name              = "eks-ssh-key"
