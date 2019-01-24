@@ -212,11 +212,11 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 
 resource "aws_flow_log" "this" {
-  count          = "${var.create_flow_log ? 1 : 0}"
-  log_group_name = "${aws_cloudwatch_log_group.this.name}"
-  iam_role_arn   = "${aws_iam_role.flow_role.arn}"
-  vpc_id         = "${aws_vpc.this.id}"
-  traffic_type   = "ALL"
+  count           = "${var.create_flow_log ? 1 : 0}"
+  log_destination = "${aws_cloudwatch_log_group.this.arn}"
+  iam_role_arn    = "${aws_iam_role.flow_role.arn}"
+  vpc_id          = "${aws_vpc.this.id}"
+  traffic_type    = "ALL"
 }
 
 resource "aws_iam_role" "flow_role" {
