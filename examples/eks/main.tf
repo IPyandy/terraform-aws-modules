@@ -317,7 +317,7 @@ module "asg" {
   asg_subnets               = ["${module.vpc.subnet_ids["private"]}"]
   health_check_grace_period = 30
   health_check_type         = "EC2"
-  create_alb                = true
+  create_alb                = false
   target_groups             = "${concat("${module.alb.tg}","${module.alb.tg_secure}")}"
 
   asg_tags = [
@@ -358,7 +358,7 @@ module "alb" {
   source = "../../alb/"
 
   # ALB
-  create_alb            = true
+  create_alb            = false
   is_application        = true
   is_internal           = false
   enable_delete_protect = false
@@ -370,7 +370,7 @@ module "alb" {
   subnet_ids            = "${module.vpc.subnet_ids["public"]}"
 
   # TARGET GROUPS - FOR ISTIO
-  create_tg               = true
+  create_tg               = false
   vpc_id                  = "${module.vpc.vpc_id}"
   tg_ports                = ["31380", "31381", "31382"]
   sec_tg_ports            = ["31390", "31391", "31392"]
