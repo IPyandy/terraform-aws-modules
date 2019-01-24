@@ -372,35 +372,36 @@ module "alb" {
   # TARGET GROUPS - FOR ISTIO
   create_tg               = true
   vpc_id                  = "${module.vpc.vpc_id}"
-  tg_ports                = ["31380", "31381"]
-  sec_tg_ports            = ["31390", "31391"]
-  health_check_ports      = ["traffic-port", "31368"]
-  sec_health_check_ports  = ["traffic-port", "31368"]
+  tg_ports                = ["31380", "31381", "31382"]
+  sec_tg_ports            = ["31390", "31391", "31392"]
+  health_check_ports      = ["traffic-port", "31368", "traffic-port"]
+  sec_health_check_ports  = ["traffic-port", "31368", "traffic-port"]
   tg_protocol             = "HTTP"
   sec_tg_protocol         = "HTTPS"
   health_interval         = "10"
   health_timeout          = "5"
   healthy_threshold       = "3"
   unhealthy_threshold     = "3"
-  health_check_path       = ["/productpage", "/"]
+  health_check_path       = ["/productpage", "/", "/"]
   matcher                 = "200-299"
   sec_health_interval     = "10"
   sec_health_timeout      = "5"
   sec_healthy_threshold   = "3"
   sec_unhealthy_threshold = "3"
-  sec_health_check_path   = ["/productpage", "/"]
+  sec_health_check_path   = ["/productpage", "/", "/"]
   sec_matcher             = "200-299"
 
   # LISTENERS
   listener_domains = [
     "${var.cnames[0]}.${var.domain_name}",
     "${var.cnames[1]}.${var.domain_name}",
+    "${var.cnames[2]}.${var.domain_name}",
   ]
 
-  listener_rule_priority     = ["100", "101"]
-  forward_rules              = ["/productpage/*", "/*"]
+  listener_rule_priority     = ["100", "101", "102"]
+  forward_rules              = ["/productpage/*", "/*", "/*"]
   listener_ports             = ["80"]
-  sec_listener_rule_priority = ["100", "101"]
-  sec_forward_rules          = ["/productpage/*", "/*"]
+  sec_listener_rule_priority = ["100", "101", "102"]
+  sec_forward_rules          = ["/productpage/*", "/*", "/*"]
   sec_listener_ports         = ["443"]
 }
