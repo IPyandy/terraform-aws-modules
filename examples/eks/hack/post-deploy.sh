@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# aws eks update-kubeconfig --kubeconfig ~/.kube/aws-dev-eks.yaml --name eks-cluster-dev-62829
 # SETUP KUBECONFIG
 
 KUBEDIR="${HOME}/.kube"
@@ -7,8 +8,9 @@ KUBECONFIG="${KUBEDIR}/config"
 AWSKEY="${AWS_DEVPRIV_SSHKEY}"
 SSHUSER="ec2-user" # change to appropriate user
 CLUSTER="eks"
+CLUSTERNAME=""
 
-function setKubeConfig() {
+function resetKubeConfig() {
 	# update kubenconfig variable
 	DIRLIST=(${KUBEDIR}/${prefix}*.yaml)
 
@@ -21,20 +23,22 @@ function setKubeConfig() {
 
 	# set KUBECONFIG back to default
 	export KUBECONFIG="${KUBEDIR}/config"
-	echo "kubeconfig entry generated for ${CLUSTERNAME}."
 }
 
 function postTasks() {
-	terraform output -module=eks kubeconfig >"$KUBEDIR/${CLUSTERNAME}.yaml"
-	BASTIONIP="$(terraform output -module=eks aws_bastion_pub_ip)"
 
 	# SET KUBECONFIG
-	setKubeConfig
+	CLUSTERNAME="$(terraform output -module=${CLUSTER} ${CLUSTER}-name)"
+	# aws eks update-kubeconfig --kubeconfig ~/.kube/${CLUSTERNAME}.yaml --name ${CLUSTERNAME}
+	terraform output -module=eks kubeconfig >${HOME}/.kube/${CLUSTERNAME}.yaml
+	resetKubeConfig
+	kubectl config use-context ${CLUSTERNAME}
+
+	# PREPARE BASTION HOST
+	BASTIONIP="$(terraform output -module=eks aws_bastion_pub_ip)"
 	if [ $? == 0 ]; then
 		scp -i $AWSKEY -o StrictHostKeyChecking=no "$KUBEDIR/${CLUSTERNAME}.yaml" "${SSHUSER}"@$BASTIONIP:.kube/config
 	fi
-
-	kubectl config use-context ${CLUSTERNAME}
 
 	# PATCH STORAGE
 	cat <<EOF | kubectl apply -f -
@@ -42,12 +46,12 @@ kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: gp2
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
 provisioner: kubernetes.io/aws-ebs
 parameters:
   type: gp2
-reclaimPolicy: Retain
-mountOptions:
-  - debug
+  fsType: ext4
 EOF
 
 	kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'

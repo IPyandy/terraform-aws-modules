@@ -169,12 +169,7 @@ function destroyCluster() {
 	rm "${KUBEDIR}/config"
 	rm "${KUBEDIR}/${CLUSTERNAME}.yaml"
 	terraform destroy -force
-}
 
-function destroyClusters() {
-
-	echo "Inside destroyClusters()"
-	destroyCluster
 	resetKubeConfig
 }
 
@@ -195,7 +190,7 @@ function run() {
 		remove | delete | destroy | down)
 			DESTROY="yes"
 			shift
-			destroyClusters
+			destroyCluster
 			if [ "${?}" == 0 ]; then
 				exit 0
 			else
