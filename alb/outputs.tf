@@ -4,7 +4,7 @@ output "alb_dns_name" {
 }
 
 output "alb_arn" {
-  value = "${element(aws_lb.alb.*.arn, 0)}"
+  value = "${element(concat(aws_lb.alb.*.arn, list("")), 0)}"
 }
 
 output "tg" {
