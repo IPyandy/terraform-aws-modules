@@ -49,6 +49,42 @@ resource "aws_iam_role" "eks_node_role" {
 POLICY
 }
 
+resource aws_iam_policy "eks_node_policy" {
+  name = "eks_node_policy"
+
+  policy = <<POLICY
+{
+ "Version": "2012-10-17",
+ "Statement": [
+   {
+     "Effect": "Allow",
+     "Action": [
+       "route53:ChangeResourceRecordSets"
+     ],
+     "Resource": [
+       "arn:aws:route53:::hostedzone/*"
+     ]
+   },
+   {
+     "Effect": "Allow",
+     "Action": [
+       "route53:ListHostedZones",
+       "route53:ListResourceRecordSets"
+     ],
+     "Resource": [
+       "*"
+     ]
+   }
+ ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "eks_node_nodes-CUSTOM" {
+  policy_arn = "${aws_iam_policy.eks_node_policy.arn}"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
 resource "aws_iam_role_policy_attachment" "eks_node_nodes-AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = "${aws_iam_role.eks_node_role.name}"
