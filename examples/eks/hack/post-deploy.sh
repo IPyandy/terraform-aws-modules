@@ -49,8 +49,20 @@ metadata:
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
 provisioner: kubernetes.io/aws-ebs
+reclaimPolicy: Delete
 parameters:
   type: gp2
+  fsType: ext4
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: iops
+provisioner: kubernetes.io/aws-ebs
+reclaimPolicy: Delete
+parameters:
+  type: io1
+  iopsPerGB: "10"
   fsType: ext4
 EOF
 
