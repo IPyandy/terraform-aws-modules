@@ -45,7 +45,7 @@ module "eks" {
   vpc_id                = "${module.vpc.vpc_id}"
   pub_subnets           = "${module.vpc.public_subnet_ids}"     # method #1
   priv_subnets          = "${module.vpc.subnet_ids["private"]}" # method #2
-  create_dns            = true
+  create_dns            = false
   create_alb            = true
   cluster_name          = "${local.cluster_name}"
   env                   = "${local.env}"
@@ -358,14 +358,14 @@ module "alb" {
   source = "../../alb/"
 
   # ALB
-  create_alb            = false
+  create_alb            = true
   is_application        = true
   is_internal           = false
   enable_delete_protect = false
   alb_name              = "eks-cluster"
   env                   = "dev"
   rand1                 = "${local.rand1}"
-  num_albs              = 1
+  num_albs              = 0
   security_group_ids    = "${module.eks.alb_security_group_ids}"
   subnet_ids            = "${module.vpc.subnet_ids["public"]}"
 
