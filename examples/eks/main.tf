@@ -300,7 +300,7 @@ module "asg" {
       resource_type = "instance"
 
       tags = {
-        Name = "${local.cluster_name}-${local.env}-${local.rand1}-launch-tpl"
+        Name = "${local.cluster_name}-${local.env}-${local.rand1}"
       }
     },
   ]
@@ -329,6 +329,16 @@ module "asg" {
     {
       key                 = "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}"
       value               = "owned"
+      propagate_at_launch = true
+    },
+    {
+      key                 = "k8s.io/cluster-autoscaler/enabled"
+      value               = true
+      propagate_at_launch = true
+    },
+    {
+      key                 = "k8s.io/cluster-autoscaler/${local.cluster_name}-${local.env}-${local.rand1}"
+      value               = true
       propagate_at_launch = true
     },
   ]
