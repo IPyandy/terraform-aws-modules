@@ -216,7 +216,7 @@ module "vpc" {
 module "subnets" {
   # source        = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//subnets?ref=vpc-module"
   source        = "../../subnets/"
-  create_subnet = true
+  create_subnet = false
 
   # ipv4_subnets = [
   #   "10.0.64.0/24",
