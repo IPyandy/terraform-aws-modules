@@ -271,20 +271,19 @@ module "asg" {
   enable_monitoring = true
   user_data         = "${module.eks.node_user_data}"
 
-  block_device_mappings = [
-    {
-      ebs = [
-        {
-          volume_size           = "100"
-          volume_type           = "gp2"
-          delete_on_termination = true
-          encrypted             = false
-        },
-      ]
-
-      device_name = "/dev/xvdb"
-    },
-  ]
+  # block_device_mappings = [
+  #   {
+  #     ebs = [
+  #       {
+  #         volume_size           = "100"
+  #         volume_type           = "gp2"
+  #         delete_on_termination = true
+  #         encrypted             = false
+  #       },
+  #     ]
+  #     device_name = "/dev/xvdb"
+  #   },
+  # ]
 
   network_interfaces = [
     {
@@ -294,7 +293,6 @@ module "asg" {
       security_groups             = ["${module.eks.node_sg}"]
     },
   ]
-
   tag_specifications = [
     {
       resource_type = "instance"
@@ -304,11 +302,9 @@ module "asg" {
       }
     },
   ]
-
   lt_tags = {
     Name = "${local.cluster_name}-${local.env}-${local.rand1}-launch-tpl"
   }
-
   # AUTOSCALING GROUP
   launch_tpl_version        = "$Latest"
   asg_desired_capacity      = 3
@@ -319,7 +315,6 @@ module "asg" {
   health_check_type         = "EC2"
   create_alb                = false
   target_groups             = "${concat("${module.alb.tg}","${module.alb.tg_secure}")}"
-
   asg_tags = [
     {
       key                 = "Name"
@@ -342,11 +337,9 @@ module "asg" {
       propagate_at_launch = true
     },
   ]
-
   # AUTOSCALING GROUP POLICY
   # Only supported TargetTrackingScaling as of right now
   asg_policy_type = "TargetTrackingScaling"
-
   tracking_spec = [
     {
       predefined_metric_specification = [
