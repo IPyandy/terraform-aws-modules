@@ -40,6 +40,11 @@ function postTasks() {
 		scp -i $AWSKEY -o StrictHostKeyChecking=no "$KUBEDIR/${CLUSTERNAME}.yaml" "${SSHUSER}"@$BASTIONIP:.kube/config
 	fi
 
+	# apply configmap to allow nodes to connect to cluster master
+	terraform output -module=eks aws-auth >$PWD/aws-auth.yaml
+	kubectl apply -f $PWD/aws-auth.yaml
+	rm -rfv $PWD/aws-auth.yaml
+
 	# PATCH STORAGE
 	cat <<EOF | kubectl apply -f -
 kind: StorageClass
@@ -93,12 +98,9 @@ EOF
 	helm init --service-account tiller
 	kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 
-	# FINISH SETUP
-
-	# apply configmap to allow nodes to connect to cluster master
-	terraform output -module=eks aws-auth >$PWD/aws-auth.yaml
-	kubectl apply -f $PWD/aws-auth.yaml
-	rm -rfv $PWD/aws-auth.yaml
+	# INSTALL CALICO CNI - PREFERRED
+	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
+	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/calico.yaml
 }
 
 function run() {
