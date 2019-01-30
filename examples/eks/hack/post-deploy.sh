@@ -96,7 +96,6 @@ subjects:
 EOF
 
 	helm init --service-account tiller
-	kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 
 	# INSTALL CALICO CNI - PREFERRED
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
