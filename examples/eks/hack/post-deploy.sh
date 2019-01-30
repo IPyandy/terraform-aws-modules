@@ -90,7 +90,7 @@ subjects:
     namespace: kube-system
 EOF
 
-	helm init
+	helm init --service-account tiller
 	kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 
 	# FINISH SETUP
