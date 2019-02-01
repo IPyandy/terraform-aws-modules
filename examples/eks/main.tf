@@ -48,6 +48,7 @@ module "eks" {
   create_dns            = false
   create_alb            = true
   cluster_name          = "${local.cluster_name}"
+  eks_version           = "1.11"
   env                   = "${local.env}"
   domain_name           = "${var.domain_name}"
   alb_dns_name          = "${module.alb.alb_dns_name}"

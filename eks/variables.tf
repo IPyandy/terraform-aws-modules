@@ -18,6 +18,10 @@ variable "cluster_name" {
   default = "aws_eks_cluster"
 }
 
+variable "eks_version" {
+  default = "1.11"
+}
+
 variable "node_instance_type" {
   default = "m5.large"
 }
