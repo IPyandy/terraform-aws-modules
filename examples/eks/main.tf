@@ -334,7 +334,7 @@ module "asg" {
     },
     {
       key                 = "k8s.io/cluster-autoscaler/${local.cluster_name}-${local.env}-${local.rand1}"
-      value               = true
+      value               = "EKS AutoScaler"
       propagate_at_launch = true
     },
   ]

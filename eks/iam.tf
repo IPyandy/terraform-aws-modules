@@ -28,6 +28,11 @@ resource "aws_iam_role_policy_attachment" "eks_master_policy_attach_service" {
   role       = "${aws_iam_role.eks_master_role.name}"
 }
 
+resource "aws_iam_role_policy_attachment" "eks_master_nodes-AUTOSCALER" {
+  policy_arn = "${aws_iam_policy.eks_node_cluster_autoscaler_policy.arn}"
+  role       = "${aws_iam_role.eks_master_role.name}"
+}
+
 ### WORKER NODES
 
 resource "aws_iam_role" "eks_node_role" {
@@ -80,8 +85,35 @@ resource aws_iam_policy "eks_node_route53_policy" {
 POLICY
 }
 
+resource aws_iam_policy "eks_node_cluster_autoscaler_policy" {
+  name = "eks_node_cluster_autoscaler_policy"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "autoscaling:DescribeAutoScalingGroups",
+      "autoscaling:DescribeAutoScalingInstances",
+      "autoscaling:DescribeLaunchConfigurations",
+      "autoscaling:DescribeTags",
+      "autoscaling:SetDesiredCapacity",
+      "autoscaling:TerminateInstanceInAutoScalingGroup"
+    ],
+    "Resource": "*"
+  }]
+}
+POLICY
+}
+
 resource "aws_iam_role_policy_attachment" "eks_node_nodes-ROUTE53" {
   policy_arn = "${aws_iam_policy.eks_node_route53_policy.arn}"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_node_nodes-AUTOSCALER" {
+  policy_arn = "${aws_iam_policy.eks_node_cluster_autoscaler_policy.arn}"
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 

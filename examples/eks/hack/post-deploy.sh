@@ -100,6 +100,19 @@ EOF
 	# INSTALL CALICO CNI - PREFERRED
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/calico.yaml
+
+	# Setup Cluster Autoscaler
+	sleep 15
+	helm install --debug stable/cluster-autoscaler \
+		--wait \
+		--name=cluster-autoscaler \
+		--namespace=kube-system \
+		--set autoDiscovery.clusterName="${CLUSTERNAME}" \
+		--set cloudProvider=aws \
+		--set awsRegion=us-east-1 \
+		--set sslCertPath="/etc/kubernetes/pki/ca.crt" \
+		--set rbac.create=true \
+		--set rbac.serviceAccountName=default
 }
 
 function run() {
