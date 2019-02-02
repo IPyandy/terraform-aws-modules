@@ -40,8 +40,8 @@ locals {
 
 ### EKS
 module "eks" {
-  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//eks?ref=vpc-module"
-  source                = "../../eks/"
+  source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//eks?ref=master"
+
   vpc_id                = "${module.vpc.vpc_id}"
   pub_subnets           = "${module.vpc.public_subnet_ids}"     # method #1
   priv_subnets          = "${module.vpc.subnet_ids["private"]}" # method #2
@@ -66,8 +66,7 @@ module "eks" {
 
 ### VPC
 module "vpc" {
-  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//vpc?ref=vpc-module"
-  source = "../../vpc/"
+  source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//vpc?ref=master"
 
   ### VPC
   create_vpc = true
@@ -215,8 +214,8 @@ module "vpc" {
 #############################################################################
 
 module "subnets" {
-  # source        = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//subnets?ref=vpc-module"
-  source        = "../../subnets/"
+  source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//subnets?ref=master"
+
   create_subnet = false
 
   # ipv4_subnets = [
@@ -260,8 +259,7 @@ module "subnets" {
 #############################################################################
 
 module "asg" {
-  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//asg?ref=vpc-module"
-  source = "../../asg/"
+  source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//asg?ref=master"
 
   # LAUNCH TEMPLATE
   asg_name          = "${local.cluster_name}-${local.env}-${local.rand1}"
@@ -358,8 +356,7 @@ module "asg" {
 ### REQUIRES TERRAFORM AS KUBERNETES
 ### HAS NO OFFICIAL SUPPORT FOR ALB
 module "alb" {
-  # source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//alb?ref=vpc-module"
-  source = "../../alb/"
+  source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//alb?ref=master"
 
   # ALB
   create_alb            = true
