@@ -97,7 +97,7 @@ EOF
 
 	helm init --service-account tiller
 
-	# INSTALL CALICO CNI - PREFERRED
+	# INSTALL CALICO FOR NETWORK POLICY
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/calico.yaml
 
