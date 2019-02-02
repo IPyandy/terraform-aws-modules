@@ -36,6 +36,7 @@ function postDeploy() {
 
 function deployCluster() {
 	echo "Deploying to ${CLUSTER} -> $PWD"
+	terraform init
 
 	terraform plan -out plan.tfplan >plan.txt
 	if [ "$?" != 0 ]; then
