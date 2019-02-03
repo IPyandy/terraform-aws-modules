@@ -25,26 +25,7 @@ function resetKubeConfig() {
 	export KUBECONFIG="${KUBEDIR}/config"
 }
 
-function postTasks() {
-
-	# SET KUBECONFIG
-	CLUSTERNAME="$(terraform output -module=${CLUSTER} ${CLUSTER}-name)"
-	# aws eks update-kubeconfig --kubeconfig ~/.kube/${CLUSTERNAME}.yaml --name ${CLUSTERNAME}
-	terraform output -module=eks kubeconfig >${HOME}/.kube/${CLUSTERNAME}.yaml
-	resetKubeConfig
-	kubectl config use-context ${CLUSTERNAME}
-
-	# PREPARE BASTION HOST
-	BASTIONIP="$(terraform output -module=eks aws_bastion_pub_ip)"
-	if [ $? == 0 ]; then
-		scp -i $AWSKEY -o StrictHostKeyChecking=no "$KUBEDIR/${CLUSTERNAME}.yaml" "${SSHUSER}"@$BASTIONIP:.kube/config
-	fi
-
-	# apply configmap to allow nodes to connect to cluster master
-	terraform output -module=eks aws-auth >$PWD/aws-auth.yaml
-	kubectl apply -f $PWD/aws-auth.yaml
-	rm -rfv $PWD/aws-auth.yaml
-
+function patchStorage() {
 	# PATCH STORAGE
 	cat <<EOF | kubectl apply -f -
 kind: StorageClass
@@ -72,7 +53,9 @@ parameters:
 EOF
 
 	kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+}
 
+function installHelm() {
 	# INSTALL HELM and PATCH
 	cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -96,13 +79,10 @@ subjects:
 EOF
 
 	helm init --service-account tiller
+}
 
-	# INSTALL CALICO FOR NETWORK POLICY
-	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
-	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/calico.yaml
-
+function installClusterAutoscaler() {
 	# Setup Cluster Autoscaler
-	sleep 15
 	helm install --debug stable/cluster-autoscaler \
 		--wait \
 		--name=cluster-autoscaler \
@@ -113,6 +93,132 @@ EOF
 		--set sslCertPath="/etc/kubernetes/pki/ca.crt" \
 		--set rbac.create=true \
 		--set rbac.serviceAccountName=default
+}
+
+function installExternalDns() {
+	# External DNS - Istio
+	cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: external-dns
+  namespace: kube-system
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get","watch","list"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get","watch","list"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get","watch","list"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["list"]
+- apiGroups: ["networking.istio.io"]
+  resources: ["gateways"]
+  verbs: ["get","watch","list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns
+subjects:
+- kind: ServiceAccount
+  name: external-dns
+  namespace: kube-system
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: kube-system
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+      - name: external-dns
+        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        args:
+        - --source=service
+        - --source=ingress
+        - --source=istio-gateway
+        - --istio-ingress-gateway=istio-system/istio-ingressgateway
+        - --provider=aws
+        - --policy=sync
+        - --aws-zone-type=public
+        - --registry=txt
+        - --txt-owner-id=my-1727379787
+EOF
+
+}
+
+function installNginxIngressController() {
+	helm install --debug stable/nginx-ingress \
+		--namespace=ingress \
+		--name=nginx-ingress \
+		--set controller.ingressClass=nginx \
+		--set controller.publishService.enabled=true \
+		--set coontroller.kind=DaemonSet \
+		--set controller.resources.requests.cpu=100m \
+		--set controller.resources.requests.memory=128Mi \
+		--set controller.resources.limits.cpu=1500m \
+		--set controller.resources.limits.memory=256Mi \
+		--set controller.service.type=LoadBalancer \
+		--set controller.service.annotations.'service\.beta\.kubernetes\.io/aws-load-balancer-type'=nlb \
+		--set defaultBackend.enabled=false \
+		--set rbac.create=true
+}
+
+function postTasks() {
+
+	# SET KUBECONFIG
+	CLUSTERNAME="$(terraform output -module=${CLUSTER} ${CLUSTER}-name)"
+	# aws eks update-kubeconfig --kubeconfig ~/.kube/${CLUSTERNAME}.yaml --name ${CLUSTERNAME}
+	terraform output -module=eks kubeconfig >${HOME}/.kube/${CLUSTERNAME}.yaml
+	resetKubeConfig
+	kubectl config use-context ${CLUSTERNAME}
+
+	# PREPARE BASTION HOST
+	BASTIONIP="$(terraform output -module=eks aws_bastion_pub_ip)"
+	if [ $? == 0 ]; then
+		scp -i $AWSKEY -o StrictHostKeyChecking=no "$KUBEDIR/${CLUSTERNAME}.yaml" "${SSHUSER}"@$BASTIONIP:.kube/config
+	fi
+
+	# apply configmap to allow nodes to connect to cluster master
+	terraform output -module=eks aws-auth >$PWD/aws-auth.yaml
+	kubectl apply -f $PWD/aws-auth.yaml
+	rm -rfv $PWD/aws-auth.yaml
+
+	patchStorage
+	installHelm
+
+	# INSTALL CALICO FOR NETWORK POLICY
+	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
+	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/calico.yaml
+
+	sleep 15
+	installClusterAutoscaler
+	installExternalDns
+	installNginxIngressController
 }
 
 function run() {
