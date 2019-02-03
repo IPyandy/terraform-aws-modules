@@ -218,7 +218,7 @@ function postTasks() {
 	sleep 25
 	installClusterAutoscaler
 	installExternalDns
-	installNginxIngressController
+	# installNginxIngressController
 }
 
 function run() {
