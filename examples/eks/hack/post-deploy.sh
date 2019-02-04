@@ -51,8 +51,6 @@ parameters:
   iopsPerGB: "10"
   fsType: ext4
 EOF
-
-	kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 }
 
 function installHelm() {
@@ -215,7 +213,7 @@ function postTasks() {
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/calico.yaml
 
-	sleep 25
+	sleep 40
 	installClusterAutoscaler
 	installExternalDns
 	# installNginxIngressController
