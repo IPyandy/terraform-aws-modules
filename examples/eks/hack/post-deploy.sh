@@ -165,6 +165,7 @@ spec:
         - --aws-zone-type=public
         - --registry=txt
         - --txt-owner-id=my-1727379787
+        - --log-level=debug
 EOF
 
 }
