@@ -213,9 +213,9 @@ function postTasks() {
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/aws-k8s-cni.yaml
 	kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.3/calico.yaml
 
-	sleep 40
-	installClusterAutoscaler
 	installExternalDns
+	sleep 60
+	installClusterAutoscaler
 	# installNginxIngressController
 }
 
