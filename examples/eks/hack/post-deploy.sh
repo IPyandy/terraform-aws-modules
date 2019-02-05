@@ -169,23 +169,6 @@ EOF
 
 }
 
-function installNginxIngressController() {
-	helm install --debug stable/nginx-ingress \
-		--namespace=ingress \
-		--name=nginx-ingress \
-		--set controller.ingressClass=nginx \
-		--set controller.publishService.enabled=true \
-		--set coontroller.kind=DaemonSet \
-		--set controller.resources.requests.cpu=100m \
-		--set controller.resources.requests.memory=128Mi \
-		--set controller.resources.limits.cpu=1500m \
-		--set controller.resources.limits.memory=256Mi \
-		--set controller.service.type=LoadBalancer \
-		--set controller.service.annotations.'service\.beta\.kubernetes\.io/aws-load-balancer-type'=nlb \
-		--set defaultBackend.enabled=false \
-		--set rbac.create=true
-}
-
 function postTasks() {
 
 	# SET KUBECONFIG
@@ -216,7 +199,6 @@ function postTasks() {
 	installExternalDns
 	sleep 60
 	installClusterAutoscaler
-	# installNginxIngressController
 }
 
 function run() {
