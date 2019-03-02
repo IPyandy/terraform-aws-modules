@@ -4,7 +4,7 @@ locals {
   max_pod_per_node = {
     c4.large    = 29
     c4.xlarge   = 58
-    c4.2xlarge  = 58
+    "c4.2xlarge"  = 58
     c4.4xlarge  = 234
     c4.8xlarge  = 234
     c5.large    = 29
