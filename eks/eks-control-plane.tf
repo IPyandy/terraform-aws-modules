@@ -8,7 +8,7 @@ resource "aws_eks_cluster" "this" {
   vpc_config {
     # vpc_id             = "${aws_vpc.eks_vpc.id}" # can't be set?
     security_group_ids = ["${aws_security_group.eks_master_sg.id}"]
-    subnet_ids         = ["${var.pub_subnets}", "${var.priv_subnets}"]
+    subnet_ids         = "${var.priv_subnets}"
   }
 
   depends_on = [
