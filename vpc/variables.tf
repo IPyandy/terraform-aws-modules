@@ -128,10 +128,6 @@ variable "priv_subnet_tags" {
 ## ROUTING AND INTERNET
 ################################################################################
 
-variable "create_nat_gw" {
-  default = false
-}
-
 variable "num_nat_gws" {
   default = 0
 }
@@ -144,6 +140,10 @@ variable "eip_tags" {
   default = {}
 }
 
+variable "create_inet_gw" {
+  default = true
+}
+
 variable "inet_gw_tags" {
   default = {}
 }
@@ -154,46 +154,6 @@ variable "pub_rt_tags" {
 
 variable "priv_rt_tags" {
   default = {}
-}
-
-################################################################################
-## IPV6 ROUTING AND INTERNET
-################################################################################
-
-variable "ipv6_on_create" {
-  default = false
-}
-
-variable "create_ipv6_egress" {
-  default = false
-}
-
-variable "ipv6_cidr_pub_subnets" {
-  default = []
-}
-
-variable "ipv6_cidr_priv_subnets" {
-  default = []
-}
-
-variable "ipv6_pub_newbits" {
-  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default     = 8
-}
-
-variable "ipv6_pub_netnum" {
-  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default     = 0
-}
-
-variable "ipv6_priv_newbits" {
-  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default     = 8
-}
-
-variable "ipv6_priv_netnum" {
-  description = "Used in cidrsubnet(cidrblock, newbits, netnum)"
-  default     = 0
 }
 
 ################################################################################

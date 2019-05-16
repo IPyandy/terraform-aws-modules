@@ -1,12 +1,5 @@
 data "aws_availability_zones" "azs" {}
 
-locals {
-  ### OUTPUTS
-  dhcp_options_id = var.create_dhcp_options ? aws_vpc_dhcp_options.this.*.id : [""]
-
-  dhcp_options_association_id = var.create_dhcp_options ? aws_vpc_dhcp_options_association.this.*.id : [""]
-}
-
 ################################################################################
 ## VPC & OPTIONS
 ################################################################################
@@ -44,14 +37,13 @@ resource "aws_vpc_dhcp_options_association" "this" {
 ################################################################################
 
 resource "aws_subnet" "public" {
-  count                           = "${var.num_pub_subnets}"
+  count                           = var.num_pub_subnets
   vpc_id                          = aws_vpc.this[0].id
   availability_zone               = element(var.azs, count.index)
   map_public_ip_on_launch         = var.map_public
   assign_ipv6_address_on_creation = false
   tags                            = var.pub_subnet_tags
-
-  cidr_block = cidrsubnet(aws_vpc.this[0].cidr_block, var.ipv4_pub_newbits, var.ipv4_pub_netnum + count.index)
+  cidr_block                      = cidrsubnet(aws_vpc.this[0].cidr_block, var.ipv4_pub_newbits, var.ipv4_pub_netnum + count.index)
 }
 
 resource "aws_subnet" "private" {
@@ -74,7 +66,7 @@ resource "aws_subnet" "private" {
 
 ### INTERNET GATEWAY
 resource "aws_internet_gateway" "this" {
-  count  = length(var.pub_subnets) > 0 ? 1 : 0
+  count  = var.create_inet_gw ? 1 : 0
   vpc_id = aws_vpc.this[0].id
   tags   = var.inet_gw_tags
 }
@@ -87,7 +79,9 @@ resource "aws_eip" "natgw_ip" {
 }
 
 resource "aws_nat_gateway" "nat_gw" {
-  count         = var.num_nat_gws
+  count = var.num_nat_gws
+
+  depends_on    = [aws_internet_gateway.this]
   allocation_id = aws_eip.natgw_ip[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
   tags          = var.nat_gw_tags
@@ -143,6 +137,13 @@ resource "aws_cloudwatch_log_group" "this" {
   count = var.create_flow_log ? 1 : 0
   name  = var.flow_log_group_name
 }
+
+resource "aws_cloudwatch_log_stream" "this" {
+  count          = var.create_flow_log ? 1 : 0
+  name           = "${var.flow_log_group_name}-stream"
+  log_group_name = aws_cloudwatch_log_group.this[0].name
+}
+
 
 resource "aws_flow_log" "this" {
   count           = var.create_flow_log ? 1 : 0
