@@ -37,7 +37,7 @@ resource "aws_vpc_dhcp_options_association" "this" {
 ################################################################################
 
 resource "aws_subnet" "public" {
-  count                           = var.num_pub_subnets
+  count                           = var.create_vpc ? var.num_pub_subnets : 0
   vpc_id                          = aws_vpc.this[0].id
   availability_zone               = element(var.azs, count.index)
   map_public_ip_on_launch         = var.map_public
@@ -47,7 +47,7 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
-  count                           = var.num_priv_subnets
+  count                           = var.create_vpc ? var.num_priv_subnets : 0
   vpc_id                          = aws_vpc.this[0].id
   availability_zone               = element(var.azs, count.index)
   map_public_ip_on_launch         = false
@@ -66,20 +66,20 @@ resource "aws_subnet" "private" {
 
 ### INTERNET GATEWAY
 resource "aws_internet_gateway" "this" {
-  count  = var.create_inet_gw ? 1 : 0
+  count  = var.create_vpc && var.create_inet_gw ? 1 : 0
   vpc_id = aws_vpc.this[0].id
   tags   = var.inet_gw_tags
 }
 
 ### NAT GATEWAY and EIPS
 resource "aws_eip" "natgw_ip" {
-  count = var.num_nat_gws
+  count = var.create_vpc ? var.num_nat_gws : 0
   vpc   = "true"
   tags  = var.eip_tags
 }
 
 resource "aws_nat_gateway" "nat_gw" {
-  count = var.num_nat_gws
+  count = var.create_vpc ? var.num_nat_gws : 0
 
   depends_on    = [aws_internet_gateway.this]
   allocation_id = aws_eip.natgw_ip[count.index].id
@@ -89,13 +89,13 @@ resource "aws_nat_gateway" "nat_gw" {
 
 ### ROUTE TABLES
 resource "aws_route_table" "public" {
-  count  = var.num_pub_subnets
+  count  = var.create_vpc ? var.num_pub_subnets : 0
   vpc_id = aws_vpc.this[0].id
   tags   = var.pub_rt_tags
 }
 
 resource "aws_route" "pub_default_v4" {
-  count = var.num_pub_subnets
+  count = var.create_vpc ? var.num_pub_subnets : 0
 
   depends_on             = [aws_internet_gateway.this]
   route_table_id         = aws_route_table.public[count.index].id
@@ -104,27 +104,27 @@ resource "aws_route" "pub_default_v4" {
 }
 
 resource "aws_route_table_association" "public_association" {
-  count          = var.num_pub_subnets
+  count          = var.create_vpc ? var.num_pub_subnets : 0
   subnet_id      = aws_subnet.public.*.id[count.index]
   route_table_id = aws_route_table.public[count.index].id
 }
 
 ### PRIVATE TABLE
 resource "aws_route_table" "private" {
-  count  = var.num_priv_subnets
+  count  = var.create_vpc ? var.num_priv_subnets : 0
   vpc_id = aws_vpc.this[0].id
   tags   = var.priv_rt_tags
 }
 
 resource "aws_route" "priv_default_v4" {
-  count                  = var.num_nat_gws
+  count                  = var.create_vpc ? var.num_nat_gws : 0
   route_table_id         = aws_route_table.private[count.index].id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.nat_gw[count.index].id
 }
 
 resource "aws_route_table_association" "private_association" {
-  count          = var.num_priv_subnets
+  count          = var.create_vpc ? var.num_priv_subnets : 0
   subnet_id      = aws_subnet.private.*.id[count.index]
   route_table_id = aws_route_table.private[count.index].id
 }
@@ -134,19 +134,19 @@ resource "aws_route_table_association" "private_association" {
 ################################################################################
 
 resource "aws_cloudwatch_log_group" "this" {
-  count = var.create_flow_log ? 1 : 0
+  count = var.create_vpc && var.create_flow_log ? 1 : 0
   name  = var.flow_log_group_name
 }
 
 resource "aws_cloudwatch_log_stream" "this" {
-  count          = var.create_flow_log ? 1 : 0
+  count          = var.create_vpc && var.create_flow_log ? 1 : 0
   name           = "${var.flow_log_group_name}-stream"
   log_group_name = aws_cloudwatch_log_group.this[0].name
 }
 
 
 resource "aws_flow_log" "this" {
-  count           = var.create_flow_log ? 1 : 0
+  count           = var.create_vpc && var.create_flow_log ? 1 : 0
   log_destination = aws_cloudwatch_log_group.this[count.index].arn
   iam_role_arn    = aws_iam_role.flow_role[count.index].arn
   vpc_id          = aws_vpc.this[0].id
@@ -154,8 +154,8 @@ resource "aws_flow_log" "this" {
 }
 
 resource "aws_iam_role" "flow_role" {
-  count = var.create_flow_log ? 1 : 0
-  name  = "flow_role"
+  count = var.create_vpc && var.create_flow_log ? 1 : 0
+  name  = "${var.flow_log_group_name}-flow_role"
 
   assume_role_policy = <<EOF
 {
@@ -175,8 +175,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "flow_policy" {
-  count = var.create_flow_log ? 1 : 0
-  name = "vpc_flow_policy"
+  count = var.create_vpc && var.create_flow_log ? 1 : 0
+  name = "${var.flow_log_group_name}-vpc_flow_policy"
   role = aws_iam_role.flow_role[count.index].id
 
   policy = <<EOF

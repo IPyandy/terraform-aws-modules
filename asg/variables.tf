@@ -90,3 +90,7 @@ variable "asg_policy_type" {
 variable "tracking_spec" {
   default = []
 }
+
+variable "security_group_ids" {
+  default = []
+}

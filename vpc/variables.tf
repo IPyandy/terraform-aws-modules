@@ -3,7 +3,7 @@
 ################################################################################
 
 variable "create_vpc" {
-  default = true
+  default = false
 }
 
 variable "azs" {

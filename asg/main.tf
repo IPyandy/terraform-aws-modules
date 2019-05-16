@@ -1,10 +1,11 @@
 resource "aws_launch_template" "launch_tpl" {
   # count         = "${1 - var.create_alb}"
-  name          = "${var.asg_name}-launch-tpl"
-  image_id      = "${var.ami_id}"
-  instance_type = "${var.instance_type}"
-  key_name      = "${var.ssh_key_name}"
-  user_data     = "${base64encode(var.user_data)}"
+  name                   = "${var.asg_name}-launch-tpl"
+  image_id               = "${var.ami_id}"
+  instance_type          = "${var.instance_type}"
+  key_name               = "${var.ssh_key_name}"
+  user_data              = "${base64encode(var.user_data)}"
+  vpc_security_group_ids = "${var.vpc_security_group_ids}"
 
   iam_instance_profile {
     name = "${var.instance_profile}"
