@@ -257,7 +257,7 @@ module "asg" {
     {
       resource_type = "instance"
 
-      tags = {
+      tags {
         Name = "${local.cluster_name}-${local.env}-${local.rand1}-launch-tpl"
       }
     },

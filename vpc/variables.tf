@@ -51,7 +51,7 @@ variable "dhcp_domain_name" {
 }
 
 variable "dhcp_domain_name_servers" {
-  default = []
+  default = ["AmazonProvidedDNS"]
 }
 
 variable "dhcp_ntp_servers" {

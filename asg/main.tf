@@ -32,7 +32,7 @@ resource "aws_autoscaling_group" "asg" {
   health_check_grace_period = "${var.health_check_grace_period}"
   health_check_type         = "${var.health_check_type}"
 
-  launch_template = {
+  launch_template {
     id      = "${aws_launch_template.launch_tpl.id}"
     version = "${var.launch_tpl_version}"
   }
@@ -51,7 +51,7 @@ resource "aws_autoscaling_group" "alb_asg" {
   health_check_type         = "${var.health_check_type}"
   target_group_arns         = ["${var.target_groups}"]
 
-  launch_template = {
+  launch_template {
     id      = "${aws_launch_template.launch_tpl.id}"
     version = "${var.launch_tpl_version}"
   }

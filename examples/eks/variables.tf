@@ -6,7 +6,8 @@ variable "profile" {
   default = ""
 }
 
-variable "pub_key_path" {}
+variable "pub_key_path" {
+}
 
 variable "ext_pc_cidr" {
   default = ""
@@ -33,3 +34,4 @@ variable "domain_name" {
 variable "cnames" {
   default = []
 }
+

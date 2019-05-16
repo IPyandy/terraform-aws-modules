@@ -1,7 +1,7 @@
 locals {
   # Mapping from the node type that we selected and the max number of pods that it can run
   # Taken from https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/amazon-eks-nodegroup.yaml
-  max_pod_per_node = {
+  max_pod_per_node {
     "c4.large "   = 29
     "c4.xlarge"   = 58
     "c4.2xlarge"  = 58

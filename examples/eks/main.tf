@@ -1,6 +1,5 @@
 terraform {
-  required_version = ">= 0.11.11"
-
+  required_version = ">= 0.12"
   ##############################################
   ## SAMPLE S3 BACKEND FOR PRODUCTION
   ## BACKENDS CANNOT CONTAIN INTERPOLATION AS
@@ -18,8 +17,8 @@ terraform {
 
 provider "aws" {
   region                  = "us-east-1"
-  shared_credentials_file = "${var.credentials}"
-  profile                 = "${var.profile}"
+  shared_credentials_file = var.credentials
+  profile                 = var.profile
   version                 = ">= 1.36.0"
 }
 
@@ -33,7 +32,7 @@ resource "random_id" "rand2" {
 }
 
 locals {
-  rand1        = "${random_id.rand1.dec}"
+  rand1        = random_id.rand1.dec
   cluster_name = "eks-cluster"
   env          = "dev"
 }
@@ -42,26 +41,26 @@ locals {
 module "eks" {
   source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//eks?ref=master"
 
-  vpc_id                = "${module.vpc.vpc_id}"
-  pub_subnets           = "${module.vpc.public_subnet_ids}"     # method #1
-  priv_subnets          = "${module.vpc.subnet_ids["private"]}" # method #2
+  vpc_id                = module.vpc.vpc_id
+  pub_subnets           = module.vpc.public_subnet_ids     # method #1
+  priv_subnets          = module.vpc.subnet_ids["private"] # method #2
   create_dns            = false
   create_alb            = true
-  cluster_name          = "${local.cluster_name}"
+  cluster_name          = local.cluster_name
   eks_version           = "1.11"
-  env                   = "${local.env}"
-  domain_name           = "${var.domain_name}"
-  alb_dns_name          = "${module.alb.alb_dns_name}"
+  env                   = local.env
+  domain_name           = var.domain_name
+  alb_dns_name          = module.alb.alb_dns_name
   cnames                = ["ghost", "bookinfo", "graphql"]
-  key_path              = "${var.key_path}"
-  priv_key_path         = "${var.priv_key_path}"
+  key_path              = var.key_path
+  priv_key_path         = var.priv_key_path
   key_name              = "eks-ssh-key"
   node_instance_type    = "m5.large"
   bastion_instance_type = "t3.micro"
   ec2_bastion_ami       = "ami-04681a1dbd79675a5"
   bastion_cpu_credits   = "unlimited"
-  ext_pc_cidr           = "${var.ext_pc_cidr}"
-  rand1                 = "${local.rand1}"
+  ext_pc_cidr           = var.ext_pc_cidr
+  rand1                 = local.rand1
 }
 
 ### VPC
@@ -128,7 +127,6 @@ module "vpc" {
   ### IPV6 SUBNETS
   #############################################################################
 
-
   # ipv6_cidr_pub_subnets = [
   #   "2600:1f18:63e8:5f00::/64",
   #   "2600:1f18:63e8:5f01::/64",
@@ -139,7 +137,6 @@ module "vpc" {
   #   "2600:1f18:63e8:5f21::/64",
   #   "2600:1f18:63e8:5f22::/64",
   # ]
-
 
   #############################################################################
   ### ONLY TAKES EFFECT IF ABOVE IPV6 CIDR SUBNETS ARE EMPTY OR NOT DECLARED
@@ -163,48 +160,52 @@ module "vpc" {
   #############################################################################
 
   create_flow_log     = true
-  flow_log_group_name = "${local.cluster_name}-${local.env}-${local.rand1}-flowlog"
+  flow_log_group_name = "local.cluster_name}-local.env}-local.rand1}-flowlog"
 
   #############################################################################
   ### ALL TAGS
   #############################################################################
 
-  vpc_tags = "${map("Name", "${local.cluster_name}-${local.env}-${local.rand1}-vpc",
-        "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}", "shared")}"
-  pub_subnet_tags = "${map("Name", "${local.cluster_name}-${local.env}-${local.rand1}-public",
-        "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}", "shared")}"
+  vpc_tags = {
+    Name                                                                    = local.cluster_name-local.env-local.rand1-vpc
+    kubernetes.io/cluster/local.cluster_name-local.env-local.rand1 = "shared"
+  }
+
+  pub_subnet_tags = {
+    Name                                                                    = local.cluster_name-local.env-local.rand1-public
+    kubernetes.io/cluster/local.cluster_name-local.env-local.rand1 = "shared"
+  }
+
   priv_subnet_tags = [
     {
-      "Name" = "${
-        local.cluster_name}-${local.env}-${local.rand1}}-private"
-
-      "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}" = "shared"
-      "kubernetes.io/role/internal-elb"                                         = "1"
+      Name                                                                    = local.cluster_name-local.env-local.rand1-private
+      kubernetes.io/cluster/local.cluster_name-local.env-local.rand1 = "shared"
+      kubernetes.io/role/internal-elb                                         = "1"
     },
   ]
   inet_gw_tags = [
     {
-      Name = "${local.cluster_name}-${local.env}-${local.rand1}-inet-gateway"
+      Name = "local.cluster_name}-local.env}-local.rand1}-inet-gateway"
     },
   ]
   pub_rt_tags = [
     {
-      Name = "${local.cluster_name}-${local.env}-${local.rand1}-public-table"
+      Name = "local.cluster_name}-local.env}-local.rand1}-public-table"
     },
   ]
   eip_tags = [
     {
-      Name = "${local.cluster_name}-${local.env}-${local.rand1}-natgw-eip"
+      Name = "local.cluster_name}-local.env}-local.rand1}-natgw-eip"
     },
   ]
   nat_gw_tags = [
     {
-      Name = "${local.cluster_name}-${local.env}-${local.rand1}-nat-gateway"
+      Name = "local.cluster_name}-local.env}-local.rand1}-nat-gateway"
     },
   ]
   priv_rt_tags = [
     {
-      Name = "${local.cluster_name}-${local.env}-${local.rand1}-private-table"
+      Name = "local.cluster_name}-local.env}-local.rand1}-private-table"
     },
   ]
 }
@@ -225,8 +226,8 @@ module "subnets" {
   # ]
 
   num_subnets     = 3
-  vpc_id          = "${module.vpc.vpc_id}"
-  ipv4_cidr_block = "${module.vpc.ipv4_cidr_blocks[0]}" # can be set manually
+  vpc_id          = module.vpc.vpc_id
+  ipv4_cidr_block = module.vpc.ipv4_cidr_blocks[0] # can be set manually
   ipv4_newbits    = 8
   ipv4_netnum     = 16
   map_public      = false
@@ -235,20 +236,19 @@ module "subnets" {
   ### IPV6 THINGS
   #############################################################################
 
-
   # ipv6_cidr_subnets = [
   #   "2600:1f18:63e8:5f60::/64",
   #   "2600:1f18:63e8:5f61::/64",
   #   "2600:1f18:63e8:5f62::/64",
   # ]
 
-  ipv6_cidr_block = "${module.vpc.ipv6_cidr_blocks[0]}" # can be set manually
+  ipv6_cidr_block = module.vpc.ipv6_cidr_blocks[0] # can be set manually
   ipv6_newbits    = 8
   ipv6_netnum     = 64
   ipv6_on_create  = false
   tags = [
     {
-      Name    = "${local.cluster_name}-${local.env}-${local.rand1}--extra-table"
+      Name    = "local.cluster_name}-local.env}-local.rand1}--extra-table"
       purpose = "Just testing the subnet module"
     },
   ]
@@ -262,13 +262,13 @@ module "asg" {
   source = "git::ssh://git@github.com/IPyandy/terraform-aws-modules.git//asg?ref=master"
 
   # LAUNCH TEMPLATE
-  asg_name          = "${local.cluster_name}-${local.env}-${local.rand1}"
+  asg_name          = "local.cluster_name}-local.env}-local.rand1}"
   instance_type     = "m5.large"
-  ami_id            = "${module.eks.eks-node}"
-  ssh_key_name      = "${module.eks.ssh_key_name}"
-  instance_profile  = "${module.eks.node_instance_profile}"
+  ami_id            = module.eks.eks-node
+  ssh_key_name      = module.eks.ssh_key_name
+  instance_profile  = module.eks.node_instance_profile
   enable_monitoring = true
-  user_data         = "${module.eks.node_user_data}"
+  user_data         = module.eks.node_user_data
 
   # block_device_mappings = [
   #   {
@@ -289,39 +289,39 @@ module "asg" {
       associate_public_ip_address = false
       delete_on_termination       = true
       device_index                = "0"
-      security_groups             = ["${module.eks.node_sg}"]
+      security_groups             = [module.eks.node_sg]
     },
   ]
   tag_specifications = [
     {
       resource_type = "instance"
-
-      tags = {
-        Name = "${local.cluster_name}-${local.env}-${local.rand1}"
+      tags {
+        Name = "local.cluster_name}-local.env}-local.rand1}"
       }
     },
   ]
-  lt_tags = {
-    Name = "${local.cluster_name}-${local.env}-${local.rand1}-launch-tpl"
+  lt_tags {
+    Name = "local.cluster_name}-local.env}-local.rand1}-launch-tpl"
   }
+
   # AUTOSCALING GROUP
   launch_tpl_version        = "$Latest"
   asg_desired_capacity      = 3
   asg_max_size              = 6
   asg_min_size              = 3
-  asg_subnets               = ["${module.vpc.subnet_ids["private"]}"]
+  asg_subnets               = [module.vpc.subnet_ids["private"]]
   health_check_grace_period = 30
   health_check_type         = "EC2"
   create_alb                = false
-  target_groups             = "${concat("${module.alb.tg}","${module.alb.tg_secure}")}"
+  target_groups             = concat(module.alb.tg, module.alb.tg_secure)
   asg_tags = [
     {
       key                 = "Name"
-      value               = "${local.cluster_name}-${local.env}-${local.rand1}-alb-node-asg"
+      value               = "local.cluster_name}-local.env}-local.rand1}-alb-node-asg"
       propagate_at_launch = true
     },
     {
-      key                 = "kubernetes.io/cluster/${local.cluster_name}-${local.env}-${local.rand1}"
+      key                 = "kubernetes.io/cluster/local.cluster_name}-local.env}-local.rand1}"
       value               = "owned"
       propagate_at_launch = true
     },
@@ -331,11 +331,12 @@ module "asg" {
       propagate_at_launch = true
     },
     {
-      key                 = "k8s.io/cluster-autoscaler/${local.cluster_name}-${local.env}-${local.rand1}"
+      key                 = "k8s.io/cluster-autoscaler/local.cluster_name}-local.env}-local.rand1}"
       value               = "EKS AutoScaler"
       propagate_at_launch = true
     },
   ]
+
   # AUTOSCALING GROUP POLICY
   # Only supported TargetTrackingScaling as of right now
   asg_policy_type = "TargetTrackingScaling"
@@ -346,8 +347,7 @@ module "asg" {
           predefined_metric_type = "ASGAverageCPUUtilization"
         },
       ]
-
-      target_value = 60.0
+      target_value = 60
     },
   ]
 }
@@ -365,14 +365,14 @@ module "alb" {
   enable_delete_protect = false
   alb_name              = "eks-cluster"
   env                   = "dev"
-  rand1                 = "${local.rand1}"
+  rand1                 = local.rand1
   num_albs              = 0
-  security_group_ids    = "${module.eks.alb_security_group_ids}"
-  subnet_ids            = "${module.vpc.subnet_ids["public"]}"
+  security_group_ids    = module.eks.alb_security_group_ids
+  subnet_ids            = module.vpc.subnet_ids["public"]
 
   # TARGET GROUPS - FOR ISTIO
   create_tg               = false
-  vpc_id                  = "${module.vpc.vpc_id}"
+  vpc_id                  = module.vpc.vpc_id
   tg_ports                = ["31380", "31381", "31382"]
   sec_tg_ports            = ["31390", "31391", "31392"]
   health_check_ports      = ["traffic-port", "31368", "traffic-port"]
@@ -394,9 +394,9 @@ module "alb" {
 
   # LISTENERS
   listener_domains = [
-    "${var.cnames[0]}.${var.domain_name}",
-    "${var.cnames[1]}.${var.domain_name}",
-    "${var.cnames[2]}.${var.domain_name}",
+    "var.cnames[0]}.var.domain_name}",
+    "var.cnames[1]}.var.domain_name}",
+    "var.cnames[2]}.var.domain_name}",
   ]
 
   listener_rule_priority     = ["100", "101", "102"]
@@ -406,3 +406,4 @@ module "alb" {
   sec_forward_rules          = ["/productpage/*", "/*", "/*"]
   sec_listener_ports         = ["443"]
 }
+

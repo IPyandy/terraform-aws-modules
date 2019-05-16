@@ -10,7 +10,7 @@ resource "aws_lb_target_group" "tg" {
   port     = "${element(var.tg_ports, count.index)}"
   protocol = "${var.tg_protocol}"
 
-  health_check = {
+  health_check {
     path                = "${var.health_check_path[count.index]}"
     port                = "${var.health_check_ports[count.index]}"
     protocol            = "${var.tg_protocol}"
@@ -21,7 +21,7 @@ resource "aws_lb_target_group" "tg" {
     matcher             = "${var.matcher}"
   }
 
-  stickiness = {
+  stickiness {
     type            = "lb_cookie" # default
     cookie_duration = "86400"     # default
     enabled         = false       # defaul
@@ -40,7 +40,7 @@ resource "aws_lb_target_group" "tg_secure" {
   port     = "${element(var.sec_tg_ports, count.index)}"
   protocol = "${var.sec_tg_protocol}"
 
-  health_check = {
+  health_check {
     path                = "${var.sec_health_check_path[count.index]}"
     port                = "${var.sec_health_check_ports[count.index]}"
     protocol            = "${var.sec_tg_protocol}"
@@ -51,7 +51,7 @@ resource "aws_lb_target_group" "tg_secure" {
     matcher             = "${var.sec_matcher}"
   }
 
-  stickiness = {
+  stickiness {
     type            = "lb_cookie" # default
     cookie_duration = "86400"     # default
     enabled         = false       # defaul
