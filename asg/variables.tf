@@ -1,5 +1,17 @@
+variable "create_asg" {
+  default = false
+}
+
 variable "asg_name" {
   default = "asg_name"
+}
+
+variable "create_default_sg" {
+  default = false
+}
+
+variable "vpc_id" {
+  default = ""
 }
 
 variable "ami_id" {
@@ -26,22 +38,6 @@ variable "user_data" {
   default = ""
 }
 
-variable "block_device_mappings" {
-  default = []
-}
-
-variable "network_interfaces" {
-  default = []
-}
-
-variable "tag_specifications" {
-  default = []
-}
-
-variable "create_alb" {
-  default = false
-}
-
 variable "asg_desired_capacity" {
   default = 0
 }
@@ -65,10 +61,6 @@ variable "health_check_grace_period" {
 variable "health_check_type" {
   description = "health_check_type options are EC2 or ELB"
   default     = "EC2"
-}
-
-variable "target_groups" {
-  default = []
 }
 
 variable "launch_tpl_version" {

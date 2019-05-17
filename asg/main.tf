@@ -1,11 +1,11 @@
-resource "aws_launch_template" "launch_tpl" {
-  # count         = "${1 - var.create_alb}"
+resource "aws_launch_template" "this" {
+  count                  = "${var.create_asg ? 1 : 0}"
   name                   = "${var.asg_name}-launch-tpl"
   image_id               = "${var.ami_id}"
   instance_type          = "${var.instance_type}"
   key_name               = "${var.ssh_key_name}"
   user_data              = "${base64encode(var.user_data)}"
-  vpc_security_group_ids = "${var.vpc_security_group_ids}"
+  vpc_security_group_ids = "${length(var.security_group_ids) > 0 ? var.security_group_ids : aws_security_group.this[*].id}"
 
   iam_instance_profile {
     name = "${var.instance_profile}"
@@ -14,78 +14,54 @@ resource "aws_launch_template" "launch_tpl" {
   monitoring {
     enabled = "${var.enable_monitoring}"
   }
-
-  block_device_mappings = ["${var.block_device_mappings}"]
-  network_interfaces    = ["${var.network_interfaces}"]
-  tag_specifications    = ["${var.tag_specifications}"]
-  tags                  = "${var.lt_tags}"
 }
 
 ## AUTOSCALING GROUP
 
-resource "aws_autoscaling_group" "asg" {
-  count                     = "${1 - var.create_alb}"
+resource "aws_autoscaling_group" "this" {
+  count                     = "${var.create_asg ? 1 : 0}"
   desired_capacity          = "${var.asg_desired_capacity}"
   max_size                  = "${var.asg_max_size}"
   min_size                  = "${var.asg_min_size}"
   name                      = "${var.asg_name}-asg"
-  vpc_zone_identifier       = ["${var.asg_subnets}"]
+  vpc_zone_identifier       = "${var.asg_subnets}"
   health_check_grace_period = "${var.health_check_grace_period}"
   health_check_type         = "${var.health_check_type}"
 
   launch_template {
-    id      = "${aws_launch_template.launch_tpl.id}"
+    id      = "${aws_launch_template.this[0].id}"
     version = "${var.launch_tpl_version}"
   }
 
-  tags = ["${var.asg_tags}"]
-}
-
-resource "aws_autoscaling_group" "alb_asg" {
-  count                     = "${var.create_alb}"
-  desired_capacity          = "${var.asg_desired_capacity}"
-  max_size                  = "${var.asg_max_size}"
-  min_size                  = "${var.asg_min_size}"
-  name                      = "${var.asg_name}-alb-asg"
-  vpc_zone_identifier       = ["${var.asg_subnets}"]
-  health_check_grace_period = "${var.health_check_grace_period}"
-  health_check_type         = "${var.health_check_type}"
-  target_group_arns         = ["${var.target_groups}"]
-
-  launch_template {
-    id      = "${aws_launch_template.launch_tpl.id}"
-    version = "${var.launch_tpl_version}"
-  }
-
-  tags = ["${var.asg_tags}"]
 }
 
 # SCALING POLICIES
 
-# WITH ALB
-resource "aws_autoscaling_policy" "alb_asg_policy" {
-  count = "${var.create_alb}"
-  name  = "${var.asg_name}-alb-asg-policy"
+resource "aws_autoscaling_policy" "this" {
+  count                  = "${var.create_asg ? 1 : 0}"
+  name                   = "${var.asg_name}-asg-policy"
+  policy_type            = "${var.asg_policy_type}"
+  autoscaling_group_name = "${aws_autoscaling_group.this[0].name}"
 
-  # The policy type, either "SimpleScaling", "StepScaling" or "TargetTrackingScaling".
-  # If this value isn't provided, AWS will default to "SimpleScaling."
-  policy_type = "${var.asg_policy_type}"
-
-  target_tracking_configuration = "${var.tracking_spec}"
-
-  autoscaling_group_name = "${aws_autoscaling_group.alb_asg.name}"
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 60
+  }
 }
 
-# WITHOUT ALB
-resource "aws_autoscaling_policy" "asg_policy" {
-  count = "${1 - var.create_alb}"
-  name  = "${var.asg_name}-asg-policy"
+## DEFAULT SECURITY GROUP
 
-  # The policy type, either "SimpleScaling", "StepScaling" or "TargetTrackingScaling".
-  # If this value isn't provided, AWS will default to "SimpleScaling."
-  policy_type = "${var.asg_policy_type}"
+resource "aws_security_group" "this" {
+  count       = "${var.create_default_sg ? 1 : 0}"
+  description = "Default security group for ${var.asg_name}"
+  vpc_id      = "${var.vpc_id}"
 
-  target_tracking_configuration = "${var.tracking_spec}"
-
-  autoscaling_group_name = "${aws_autoscaling_group.asg.name}"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
