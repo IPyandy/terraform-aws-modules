@@ -42,7 +42,7 @@ resource "aws_subnet" "public" {
   availability_zone               = element(var.azs, count.index)
   map_public_ip_on_launch         = var.map_public
   assign_ipv6_address_on_creation = false
-  tags                            = var.pub_subnet_tags
+  tags                            = var.pub_subnet_tags[count.index]
   cidr_block                      = cidrsubnet(aws_vpc.this[0].cidr_block, var.ipv4_pub_newbits, var.ipv4_pub_netnum + count.index)
 }
 
@@ -52,7 +52,7 @@ resource "aws_subnet" "private" {
   availability_zone               = element(var.azs, count.index)
   map_public_ip_on_launch         = false
   assign_ipv6_address_on_creation = false
-  tags                            = var.priv_subnet_tags
+  tags                            = var.priv_subnet_tags[count.index]
 
   cidr_block = cidrsubnet(aws_vpc.this[0].cidr_block,
     var.ipv4_priv_newbits,
@@ -117,10 +117,10 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route" "priv_default_v4" {
-  count                  = var.create_vpc ? var.num_nat_gws : 0
+  count                  = var.create_vpc ? var.num_priv_subnets : 0
   route_table_id         = aws_route_table.private[count.index].id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_gw[count.index].id
+  nat_gateway_id         = var.num_nat_gws > 1 ? aws_nat_gateway.nat_gw[count.index].id : aws_nat_gateway.nat_gw[0].id
 }
 
 resource "aws_route_table_association" "private_association" {

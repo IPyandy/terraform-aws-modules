@@ -117,11 +117,11 @@ variable "map_public" {
 }
 
 variable "pub_subnet_tags" {
-  default = {}
+  default = []
 }
 
 variable "priv_subnet_tags" {
-  default = {}
+  default = []
 }
 
 ################################################################################
