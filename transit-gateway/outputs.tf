@@ -1,7 +1,7 @@
 # Transit Gateway Outputs
 
 output "transit_gateway" {
-  value = aws_ec2_transit_gateway[0]
+  value = aws_ec2_transit_gateway[0].this
 }
 
 output "transit_gateway_id" {
