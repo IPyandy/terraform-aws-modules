@@ -77,3 +77,25 @@ variable "vpc_attachment_tags" {
   description = "A list of tags for each attachment: default = []"
   default     = []
 }
+
+# Routing
+
+variable "route_table_ids" {
+  description = "List of transit gateway route table ids"
+  default     = []
+}
+
+variable "route_table_count" {
+  description = "How many route tables to create?: default = 0 (not including the default)"
+  default     = 0
+}
+
+variable "create_custom_route_tables" {
+  description = "Whether to create custom route tables or use the defaults"
+  default     = false
+}
+
+variable "route_table_tags" {
+  description = "Tags for each route table, list of key, value pairs"
+  default     = []
+}

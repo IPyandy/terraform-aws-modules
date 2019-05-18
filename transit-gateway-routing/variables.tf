@@ -14,4 +14,3 @@ variable "route_table_ids" {
   description = "List of transit gateway route table ids"
   default     = []
 }
-

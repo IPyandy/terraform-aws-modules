@@ -25,3 +25,21 @@ output "vpc_attachment" {
 output "vpc_attachment_ids" {
   value = aws_ec2_transit_gateway_vpc_attachment.this[*].id
 }
+
+# routing
+
+output "route_tables" {
+  value = aws_ec2_transit_gateway_route_table.this[*]
+}
+
+output "route_table_ids" {
+  value = aws_ec2_transit_gateway_route_table.this[*].id
+}
+
+output "route_table_asssociations" {
+  value = aws_ec2_transit_gateway_route_table_association.this[*]
+}
+
+output "route_table_association_ids" {
+  value = aws_ec2_transit_gateway_route_table_association.this[*].id
+}
