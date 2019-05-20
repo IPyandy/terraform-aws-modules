@@ -7,7 +7,7 @@ variable "create_vpc" {
 }
 
 variable "azs" {
-  default = []
+  type = list(string)
 }
 
 variable "enable_dns_hostnames" {
