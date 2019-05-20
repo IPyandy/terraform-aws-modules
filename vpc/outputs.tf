@@ -6,6 +6,10 @@ output "vpc_id" {
   value = aws_vpc.this[0].id
 }
 
+output "cidr_block" {
+  value = "${aws_vpc.this[0].cidr_block}"
+}
+
 output "private_subnets" {
   value = "${aws_subnet.private}"
 }
