@@ -10,29 +10,29 @@
 data "aws_availability_zones" "azs" {}
 
 resource "random_shuffle" "random_az" {
-  input        = ["${data.aws_availability_zones.azs.names}"]
-  result_count = "${length(data.aws_availability_zones.azs.names)}"
+  input        = [data.aws_availability_zones.azs.names]
+  result_count = length(data.aws_availability_zones.azs.names)
 }
 
 resource "aws_subnet" "this" {
-  count                           = "${local.subnet_count}"
-  vpc_id                          = "${var.vpc_id}"
-  map_public_ip_on_launch         = "${var.map_public}"
-  assign_ipv6_address_on_creation = "${var.ipv6_on_create}"
-  tags                            = "${var.tags}"
+  count                           = local.subnet_count
+  vpc_id                          = var.vpc_id
+  map_public_ip_on_launch         = var.map_public
+  assign_ipv6_address_on_creation = var.ipv6_on_create
+  tags                            = var.tags
 
-  availability_zone = "${length(var.azs) > 0 ?
+  availability_zone = (length(var.azs) > 0 ?
                         element(coalescelist(var.azs, list("")), count.index) :
-                        random_shuffle.random_az.result[count.index]}"
+                        random_shuffle.random_az.result[count.index])
 
-  cidr_block = "${length(var.ipv4_subnets) > 0 ?
+  cidr_block = (length(var.ipv4_subnets) > 0 ?
                   element(coalescelist(var.ipv4_subnets, list("")),
                   count.index) : cidrsubnet(var.ipv4_cidr_block,
-                  var.ipv4_newbits, var.ipv4_netnum + count.index)}"
+                  var.ipv4_newbits, var.ipv4_netnum + count.index))
 
-  ipv6_cidr_block = "${length(var.ipv6_cidr_subnets) > 0 &&
+  ipv6_cidr_block = (length(var.ipv6_cidr_subnets) > 0 &&
                       length(var.ipv6_cidr_subnets) >= local.subnet_count  ?
                       element(coalescelist(var.ipv6_cidr_subnets, list("")),
                       count.index) : cidrsubnet(var.ipv6_cidr_block,
-                      var.ipv6_newbits, var.ipv6_netnum + count.index)}"
+                      var.ipv6_newbits, var.ipv6_netnum + count.index))
 }
