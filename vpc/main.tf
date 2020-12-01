@@ -44,7 +44,7 @@ resource "aws_vpc_dhcp_options_association" "this" {
 ################################################################################
 
 resource "aws_subnet" "public" {
-  count                           = "${var.num_pub_subnets}"
+  count                           = var.num_pub_subnets
   vpc_id                          = aws_vpc.this[0].id
   availability_zone               = element(var.azs, count.index)
   map_public_ip_on_launch         = var.map_public
@@ -175,8 +175,8 @@ EOF
 
 resource "aws_iam_role_policy" "flow_policy" {
   count = var.create_flow_log ? 1 : 0
-  name = "vpc_flow_policy"
-  role = aws_iam_role.flow_role[count.index].id
+  name  = "vpc_flow_policy"
+  role  = aws_iam_role.flow_role[count.index].id
 
   policy = <<EOF
 {
